@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CricAdda — TV Mode</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="stylesheet" href="app.css">
+<style>
+  body { overflow: hidden; }
+  .stage { height: 100dvh; display: flex; flex-direction: column; padding: 3vh 3vw; gap: 1.6vh; max-width: none; }
+  .bar { display: flex; justify-content: space-between; align-items: center; font-family: 'Press Start 2P', monospace; font-size: clamp(9px, 1.2vw, 14px); color: var(--dim); }
+  .bar .live { color: #ff6ab8; }
+  .waiting { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3vh; text-align: center; }
+  .waiting .t { font-family: 'Press Start 2P', monospace; font-size: clamp(14px, 2.6vw, 26px); line-height: 1.8; }
+  .waiting .s { color: var(--dim); font-size: clamp(16px, 1.8vw, 22px); max-width: 60ch; }
+  .scorerow { display: flex; align-items: baseline; gap: 2vw; flex-wrap: wrap; }
+  .team { font-family: 'Press Start 2P', monospace; font-size: clamp(14px, 2.4vw, 26px); }
+  .runs { font-family: 'Press Start 2P', monospace; font-size: clamp(40px, 7vw, 84px); }
+  .ov { font-size: clamp(18px, 2.2vw, 26px); color: var(--dim); }
+  .chase { font-family: 'Press Start 2P', monospace; font-size: clamp(10px, 1.6vw, 18px); color: var(--gold); }
+  .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2vw; flex: 1; min-height: 0; }
+  .panel { background: var(--panel); border: 3px solid var(--line); padding: 2vh 1.6vw; }
+  .lbl { font-family: 'Press Start 2P', monospace; font-size: clamp(7px, 0.9vw, 10px); color: var(--dim); margin-bottom: 1.4vh; }
+  .prow { display: flex; justify-content: space-between; font-size: clamp(18px, 2.2vw, 28px); padding: 0.8vh 0; border-bottom: 1px solid var(--line); }
+  .prow:last-child { border-bottom: 0; }
+  .prow .st { color: var(--green); }
+  .tvballs { display: flex; gap: 0.6vw; flex-wrap: wrap; }
+  .tvballs .ball-chip { min-width: 3vw; height: 3vw; font-size: clamp(10px, 1.4vw, 16px); }
+  .bound { font-size: clamp(16px, 2vw, 24px); margin-top: 2vh; }
+  .foot2 { display: flex; justify-content: space-between; color: var(--dim); font-size: clamp(14px, 1.5vw, 18px); }
+  .reswrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.4vh; text-align: center; }
+  .res { font-family: 'Press Start 2P', monospace; font-size: clamp(14px, 2.6vw, 28px); color: var(--gold); line-height: 1.8; }
+  .mom { font-family: 'Press Start 2P', monospace; font-size: clamp(9px, 1.4vw, 15px); color: var(--blue); line-height: 1.9; }
+  .flash .big { font-size: clamp(60px, 12vw, 160px); }
+  .flash .sub { font-size: clamp(18px, 2.4vw, 30px); }
+</style>
+</head>
+<body>
+<div class="stage" id="stage"></div>
+<div class="flash" id="flash"><div class="big" id="flashBig"></div><div class="sub" id="flashSub"></div></div>
+<script>
+const stage = document.getElementById('stage');
+const esc = (s) => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+let lastFxSeq = 0, flashTimer = null;
+
+function flash(cls, big, sub) {
+  const f = document.getElementById('flash');
+  f.className = 'flash show ' + cls;
+  document.getElementById('flashBig').textContent = big;
+  document.getElementById('flashSub').textContent = sub || '';
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => { f.className = 'flash'; }, 2200);
+}
+function chip(b) {
+  const cls = b.d === 'W' ? 'bw' : b.d === '4' ? 'b4' : b.d === '6' || b.d.startsWith('Nb+6') ? 'b6' : '';
+  return `<span class="ball-chip ${cls}">${esc(b.d)}</span>`;
+}
+function renderWaiting() {
+  stage.innerHTML = `
+    <div class="bar"><span>CRIC<span style="color:var(--green)">ADDA</span> · TV MODE</span><span></span></div>
+    <div class="waiting">
+      <div class="t">WAITING FOR<br>A MATCH…</div>
+      <div class="s">Keep this window on the TV / big screen. Start or resume a match in the
+        CricAdda app in another window on this device — the scoreboard appears here automatically.</div>
+      <div class="s px blink" style="color:var(--green);font-size:12px">▶ TV LINKED · READY</div>
+    </div>`;
+}
+function render(v) {
+  if (v.phase === 'result') {
+    stage.innerHTML = `
+      <div class="bar"><span>CRIC<span style="color:var(--green)">ADDA</span></span><span>TV MODE</span></div>
+      <div class="reswrap">
+        <div class="res">🏆 ${esc(v.result)}</div>
+        ${v.mom ? `<div class="mom">⭐ PLAYER OF THE MATCH: ${esc(v.mom.name)} — ${esc(v.mom.summary)}</div>` : ''}
+        <div class="dim" style="font-size:20px">${v.innings.map((i) => `${esc(i.team)} ${i.runs}/${i.wkts}`).join(' · ')}</div>
+      </div>`;
+    return;
+  }
+  stage.innerHTML = `
+    <div class="bar"><span>CRIC<span style="color:var(--green)">ADDA</span></span>
+      <span class="live">● LIVE</span><span>TV MODE</span></div>
+    <div class="scorerow">
+      <span class="team">${esc(v.batting.toUpperCase())}</span>
+      <span class="runs">${v.runs}/${v.wkts}</span>
+      <span class="ov">(${v.overs} ov)</span>
+    </div>
+    <div class="chase">${v.chase ? `TARGET · NEED ${v.chase.need} OFF ${v.chase.ballsLeft}` : `INNINGS ${v.inningsNo} OF 2 · ${v.oversMax} OVERS/SIDE`}</div>
+    <div class="grid">
+      <div class="panel">
+        <div class="lbl">BATTING</div>
+        ${v.striker ? `<div class="prow"><span>${esc(v.striker.name)} <span class="st">*</span></span><span>${v.striker.runs} (${v.striker.balls})</span></div>` : ''}
+        ${v.ns ? `<div class="prow"><span>${esc(v.ns.name)}</span><span>${v.ns.runs} (${v.ns.balls})</span></div>` : ''}
+        <div class="lbl" style="margin-top:2.4vh">BOWLING</div>
+        ${v.bowler ? `<div class="prow"><span>${esc(v.bowler.name)}</span><span>${v.bowler.wickets}/${v.bowler.runs}</span></div>` : '<div class="prow dim">selecting bowler…</div>'}
+      </div>
+      <div class="panel">
+        <div class="lbl">THIS OVER</div>
+        <div class="tvballs">${(v.thisOver || []).map(chip).join('') || '<span class="dim">new over</span>'}</div>
+        <div class="bound"><span class="green">${v.fours} × FOUR</span> · <span class="gold">${v.sixes} × SIX</span></div>
+      </div>
+    </div>
+    <div class="foot2"><span>${esc(v.teams.join(' vs '))}</span><span>a made. product</span></div>`;
+}
+
+renderWaiting();
+try {
+  const bc = new BroadcastChannel('cricadda_tv');
+  bc.onmessage = (e) => {
+    const m = e.data;
+    if (!m || m.type !== 'state') return;
+    render(m.view);
+    if (m.fx && m.fx.seq > lastFxSeq) {
+      lastFxSeq = m.fx.seq;
+      if (m.fx.kind === 'four') flash('f4', 'FOUR!', m.fx.batter || '');
+      else if (m.fx.kind === 'six') flash('f6', 'SIX!', m.fx.batter || '');
+      else if (m.fx.kind === 'wicket') flash('fw', 'OUT!', m.fx.batterOut || '');
+    }
+  };
+  bc.postMessage({ type: 'hello' }); // ask the app to resend current state
+} catch (e) {
+  stage.innerHTML = '<div class="waiting"><div class="t">TV MODE NEEDS A NEWER BROWSER</div></div>';
+}
+</script>
+</body>
+</html>

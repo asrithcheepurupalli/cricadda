@@ -87,4 +87,4 @@ taps per match reduced by ~70%.
 
 ---
 
-*CricAdda — a **made.** product · made. by ac*
+*CricAdda — a **made.** product*

@@ -134,4 +134,4 @@ derive from the same stream, and every correction is traceable.
 
 ---
 
-*CricAdda — a **made.** product · made. by ac*
+*CricAdda — a **made.** product*

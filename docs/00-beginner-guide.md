@@ -105,4 +105,4 @@ score live → sensors assist**. Everything else is layers on top — see the
 
 ---
 
-*CricAdda — a **made.** product · made. by ac*
+*CricAdda — a **made.** product*

@@ -111,4 +111,4 @@ Automation hardware:
 
 ---
 
-*CricAdda — a **made.** product · made. by ac*
+*CricAdda — a **made.** product*

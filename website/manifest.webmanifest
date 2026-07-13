@@ -2,7 +2,7 @@
   "name": "CricAdda — Every Turf a Stadium",
   "short_name": "CricAdda",
   "description": "Smart cricket turf scoring: big-screen live scores, phone as the remote, sensors and AI cameras that score 4s and 6s automatically.",
-  "start_url": "/",
+  "start_url": "/app/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",

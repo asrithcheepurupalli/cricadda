@@ -161,4 +161,4 @@ low-mounted cabling in conduit, shield frame grounded, no exposed edges below 8 
 
 ---
 
-*CricAdda — a **made.** product · made. by ac*
+*CricAdda — a **made.** product*
