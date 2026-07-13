@@ -3,119 +3,517 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CricAdda — Demo Home</title>
+<title>CricAdda — Every Turf a Stadium</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  body { max-width: 760px; margin: 0 auto; padding: 24px 18px 60px; }
-  .hero { text-align: center; padding: 24px 0 8px; }
-  .hero h1 { font-size: 40px; } .hero h1 span { color: var(--green); }
-  .hero p { color: var(--dim); font-size: 16px; margin-top: 8px; }
-  .launch { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 24px 0; }
-  @media (min-width: 560px) { .launch { grid-template-columns: repeat(2, 1fr); } }
-  @media (min-width: 720px) { .launch { grid-template-columns: repeat(4, 1fr); } }
-  .launch a { text-decoration: none; }
-  .launch .card { text-align: center; height: 100%; transition: border-color 0.15s; }
-  .launch .card:hover { border-color: var(--green); }
-  .launch .em { font-size: 34px; }
-  .launch h3 { font-size: 17px; margin: 8px 0 4px; }
-  .launch p { font-size: 13px; color: var(--dim); line-height: 1.5; }
-  .steps { counter-reset: s; margin: 18px 0; }
-  .steps .card { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 10px; }
-  .num { flex: 0 0 34px; height: 34px; border-radius: 50%; background: var(--green); color: #052b12;
-         display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; }
-  .steps p { font-size: 14px; color: var(--dim); line-height: 1.55; margin-top: 2px; }
-  .steps b { color: var(--text); }
-  h2.sec { margin: 30px 0 12px; font-size: 22px; }
-  svg text { font-family: system-ui, sans-serif; }
+  html { scroll-behavior: smooth; }
+  body { font-size: 21px; line-height: 1.45; }
+  .wrap { max-width: 1020px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---------- nav ---------- */
+  nav {
+    position: sticky; top: 0; z-index: 90; background: rgba(10,22,40,0.96);
+    border-bottom: 3px solid var(--line); padding: 14px 0;
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .navlogo { font-family: 'Press Start 2P', monospace; font-size: 14px; color: var(--text); text-decoration: none; }
+  .navlogo span { color: var(--green); }
+  nav .links { display: flex; gap: 18px; flex-wrap: wrap; }
+  nav .links a { font-family: 'VT323', monospace; font-size: 19px; color: var(--dim); text-decoration: none; text-transform: uppercase; letter-spacing: 0.06em; }
+  nav .links a:hover { color: var(--green); }
+  nav .links a.play { color: var(--gold); }
+
+  /* ---------- hero ---------- */
+  .hero { text-align: center; padding: 72px 0 40px; position: relative; overflow: hidden; }
+  .hero .insert { font-family: 'Press Start 2P', monospace; font-size: 11px; color: var(--dim); letter-spacing: 0.1em; }
+  .hero h1 {
+    font-size: clamp(34px, 7.5vw, 74px); margin: 26px 0 6px; line-height: 1.15;
+    color: var(--text);
+    text-shadow: 4px 4px 0 #052b12, 8px 8px 0 rgba(34,197,94,0.35);
+  }
+  .hero h1 .g { color: var(--green); }
+  .hero .tag { font-family: 'Press Start 2P', monospace; font-size: clamp(11px, 2vw, 16px); color: var(--gold); margin: 18px 0 8px; }
+  .hero p.sub { color: var(--dim); max-width: 640px; margin: 14px auto 0; font-size: 22px; }
+  .hero .cta-row { display: flex; gap: 16px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }
+  .hero .cta-row .btn { text-decoration: none; display: inline-block; font-size: 13px; padding: 18px 24px; }
+  .hero .cta-row .btn.primary { background: var(--green); border-color: var(--green); color: #052b12; }
+  .press { margin-top: 30px; font-family: 'Press Start 2P', monospace; font-size: 12px; color: var(--green); }
+
+  /* ---------- sections ---------- */
+  section { padding: 64px 0; border-top: 3px dashed var(--line); }
+  .sec-head { text-align: center; margin-bottom: 40px; }
+  .sec-head .kicker { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--blue); letter-spacing: 0.15em; }
+  .sec-head h2 { font-size: clamp(18px, 3.4vw, 30px); margin-top: 14px; }
+  .sec-head p { color: var(--dim); margin-top: 12px; font-size: 22px; }
+
+  /* ---------- attract mode (auto-playing scoreboard) ---------- */
+  .arcade-frame {
+    background: #050d1a; border: 4px solid var(--line); box-shadow: 6px 6px 0 rgba(0,0,0,0.6);
+    padding: 26px; position: relative; overflow: hidden;
+  }
+  .arcade-frame::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.22) 0, rgba(0,0,0,0.22) 1px, transparent 1px, transparent 3px);
+  }
+  .am-top { display: flex; justify-content: space-between; align-items: center; font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--dim); }
+  .am-score { text-align: center; margin: 18px 0 6px; }
+  .am-team { font-family: 'Press Start 2P', monospace; font-size: clamp(10px, 2vw, 14px); color: var(--dim); }
+  .am-runs { font-family: 'Press Start 2P', monospace; font-size: clamp(34px, 7vw, 58px); color: var(--text); margin-top: 12px; }
+  .am-info { font-size: 20px; color: var(--dim); margin-top: 10px; }
+  .am-balls { display: flex; gap: 8px; justify-content: center; margin-top: 16px; min-height: 38px; }
+  .am-flash {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    font-family: 'Press Start 2P', monospace; font-size: clamp(26px, 6vw, 52px); z-index: 5;
+  }
+  .am-flash.show { display: flex; animation: pop 0.3s ease; }
+  @keyframes pop { from { transform: scale(0.7); } to { transform: scale(1); } }
+  .am-flash.f4 { background: rgba(4,47,24,0.94); color: var(--green); }
+  .am-flash.f6 { background: rgba(58,42,0,0.94); color: var(--gold); }
+  .am-flash.fw { background: rgba(69,10,10,0.94); color: var(--red); }
+  .demo-note { text-align: center; font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--dim); margin-top: 14px; }
+
+  /* ---------- levels (player journey) ---------- */
+  .levels { display: grid; gap: 18px; }
+  .level { display: flex; gap: 20px; align-items: flex-start; background: var(--panel); border: 3px solid var(--line); box-shadow: 4px 4px 0 rgba(0,0,0,0.5); padding: 22px; }
+  .level .lv { font-family: 'Press Start 2P', monospace; font-size: 10px; background: var(--green); color: #052b12; padding: 10px 12px; white-space: nowrap; box-shadow: 3px 3px 0 rgba(0,0,0,0.5); }
+  .level.boss .lv { background: var(--red); color: #fff; }
+  .level h3 { font-size: 14px; margin-bottom: 10px; }
+  .level p { color: var(--dim); font-size: 21px; }
+  .level p b { color: var(--text); }
+  .level .em { font-size: 30px; line-height: 1; }
+
+  /* ---------- flow diagram ---------- */
+  .flowchart { overflow-x: auto; }
+  svg text { font-family: 'VT323', monospace; }
+  svg .pxt { font-family: 'Press Start 2P', monospace; }
+
+  /* ---------- gallery ---------- */
+  .shots { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  @media (min-width: 700px) { .shots { grid-template-columns: 1fr 1fr; } }
+  .shot { background: var(--panel); border: 3px solid var(--line); box-shadow: 5px 5px 0 rgba(0,0,0,0.55); padding: 10px; }
+  .shot img { width: 100%; display: block; image-rendering: auto; }
+  .shot figcaption { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--dim); padding: 12px 4px 4px; line-height: 1.7; }
+  .shot.tall { max-width: 340px; margin: 0 auto; }
+
+  /* ---------- demo cabinets ---------- */
+  .cabinets { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  @media (min-width: 640px) { .cabinets { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 960px) { .cabinets { grid-template-columns: repeat(4, 1fr); } }
+  .cab { text-decoration: none; color: var(--text); background: var(--panel); border: 3px solid var(--line); box-shadow: 5px 5px 0 rgba(0,0,0,0.55); padding: 24px 18px; text-align: center; transition: border-color 0.15s, transform 0.08s; }
+  .cab:hover { border-color: var(--green); transform: translate(-2px,-2px); }
+  .cab .em { font-size: 40px; }
+  .cab h3 { font-size: 12px; margin: 16px 0 10px; color: var(--gold); }
+  .cab p { color: var(--dim); font-size: 19px; }
+  .steps60 { margin-top: 34px; }
+  .steps60 ol { list-style: none; counter-reset: n; display: grid; gap: 12px; }
+  .steps60 li { counter-increment: n; display: flex; gap: 16px; align-items: baseline; background: var(--panel); border: 3px solid var(--line); padding: 16px 18px; box-shadow: 4px 4px 0 rgba(0,0,0,0.5); }
+  .steps60 li::before { content: counter(n); font-family: 'Press Start 2P', monospace; font-size: 12px; color: #052b12; background: var(--gold); padding: 8px 11px; box-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+  .steps60 li span { color: var(--dim); font-size: 21px; }
+  .steps60 b, .steps60 code { color: var(--text); }
+  code { font-family: 'VT323', monospace; background: var(--panel2); padding: 1px 8px; border: 2px solid var(--line); font-size: 20px; }
+
+  /* ---------- power-ups ---------- */
+  .powerups { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 620px) { .powerups { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 920px) { .powerups { grid-template-columns: repeat(3, 1fr); } }
+  .pu { background: var(--panel); border: 3px solid var(--line); box-shadow: 4px 4px 0 rgba(0,0,0,0.5); padding: 20px; }
+  .pu .em { font-size: 26px; }
+  .pu h3 { font-size: 11px; color: var(--blue); margin: 12px 0 8px; line-height: 1.7; }
+  .pu p { color: var(--dim); font-size: 20px; }
+
+  /* ---------- packages ---------- */
+  .packs { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  @media (min-width: 860px) { .packs { grid-template-columns: repeat(3, 1fr); } }
+  .pack { background: var(--panel); border: 3px solid var(--line); box-shadow: 5px 5px 0 rgba(0,0,0,0.55); padding: 26px 22px; position: relative; }
+  .pack.hot { border-color: var(--gold); }
+  .pack .flag { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--gold); color: #3a2a00; font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 7px 10px; box-shadow: 2px 2px 0 rgba(0,0,0,0.5); white-space: nowrap; }
+  .pack h3 { font-size: 14px; color: var(--green); }
+  .pack .lvl { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--dim); margin-top: 8px; }
+  .pack ul { list-style: none; margin-top: 18px; display: grid; gap: 10px; }
+  .pack li { color: var(--dim); font-size: 20px; padding-left: 24px; position: relative; }
+  .pack li::before { content: '▸'; position: absolute; left: 0; color: var(--green); }
+  .pack li.no { opacity: 0.35; } .pack li.no::before { content: '✕'; color: var(--red); }
+
+  /* ---------- quest (business process) ---------- */
+  .quest { display: grid; gap: 0; }
+  .q-step { display: flex; gap: 20px; }
+  .q-rail { display: flex; flex-direction: column; align-items: center; }
+  .q-dot { font-family: 'Press Start 2P', monospace; font-size: 11px; background: var(--blue); color: #06283a; padding: 10px 13px; box-shadow: 3px 3px 0 rgba(0,0,0,0.5); white-space: nowrap; }
+  .q-line { flex: 1; width: 4px; background: repeating-linear-gradient(180deg, var(--line) 0 8px, transparent 8px 14px); margin: 6px 0; min-height: 26px; }
+  .q-body { padding-bottom: 30px; }
+  .q-body h3 { font-size: 13px; margin-bottom: 8px; }
+  .q-body p { color: var(--dim); font-size: 21px; max-width: 720px; }
+  .q-body b { color: var(--text); }
+
+  /* ---------- final CTA / footer ---------- */
+  .final { text-align: center; padding: 80px 0; }
+  .final h2 { font-size: clamp(18px, 3.6vw, 30px); }
+  .final p { color: var(--dim); margin: 18px auto 30px; max-width: 620px; font-size: 22px; }
+  footer { border-top: 3px solid var(--line); padding: 26px 0 40px; text-align: center; color: var(--dim); font-size: 19px; }
+  footer .px { font-size: 10px; color: var(--dim); }
+  .hiscore { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+  .hs { text-align: center; }
+  .hs .n { font-family: 'Press Start 2P', monospace; font-size: clamp(16px, 3vw, 26px); color: var(--gold); }
+  .hs .l { font-family: 'VT323', monospace; font-size: 18px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 8px; }
 </style>
 </head>
-<body>
+<body class="crt">
 
-<div class="hero">
-  <h1>Cric<span>Adda</span> <small style="font-size:16px;color:var(--dim);font-weight:700">working demo</small></h1>
-  <p>Turn any cricket turf into a stadium — big-screen scoreboard, phone control, auto-detection.</p>
+<nav>
+  <div class="wrap">
+    <a class="navlogo" href="#top">CRIC<span>ADDA</span></a>
+    <div class="links">
+      <a href="#story">Story</a>
+      <a href="#journey">Player Journey</a>
+      <a href="#machine">How It Works</a>
+      <a href="#gallery">Gameplay</a>
+      <a href="#demo" class="play">▶ Play Demo</a>
+      <a href="#powerups">Power-Ups</a>
+      <a href="#packs">Packages</a>
+      <a href="#quest">Work With Us</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero wrap" id="top">
+  <div class="insert">◄ INSERT PHONE NUMBER TO PLAY ►</div>
+  <h1>CRIC<span class="g">ADDA</span></h1>
+  <div class="tag">EVERY TURF A STADIUM · EVERY PLAYER A STAR</div>
+  <p class="sub">A giant screen behind the batsman shows the live score like a real stadium.
+     Your phone is the remote. Sensors and AI cameras score the boundaries by themselves.
+     This is box cricket — upgraded to the final level.</p>
+  <div class="cta-row">
+    <a class="btn primary" href="#demo">▶ PLAY THE LIVE DEMO</a>
+    <a class="btn" href="#journey">HOW IT WORKS ↓</a>
+  </div>
+  <div class="hiscore">
+    <div class="hs"><div class="n">&lt;1s</div><div class="l">tap to big-screen</div></div>
+    <div class="hs"><div class="n">0</div><div class="l">score disputes ever</div></div>
+    <div class="hs"><div class="n">3</div><div class="l">scoring modes: manual · assisted · auto</div></div>
+    <div class="hs"><div class="n">100%</div><div class="l">works when internet drops</div></div>
+  </div>
+  <div class="press blink">▼ PRESS START ▼</div>
+</header>
+
+<!-- ================= ATTRACT MODE ================= -->
+<section id="story">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ ATTRACT MODE — LIVE SIMULATION ■</span>
+      <h2>THE SCREEN EVERY TURF IS MISSING</h2>
+      <p>Today: scores on paper, arguments every over, nothing saved. Six turfs in every locality,
+         all identical. CricAdda gives a turf the one thing players can't stop talking about —
+         and this scoreboard below is playing itself, exactly like the real screen does.</p>
+    </div>
+    <div class="arcade-frame">
+      <div class="am-top"><span>CRICADDA ARCADE</span><span class="badge live">● LIVE DEMO</span><span>CODE 4821</span></div>
+      <div class="am-score">
+        <div class="am-team" id="amTeam">ROYAL STRIKERS BATTING</div>
+        <div class="am-runs" id="amRuns">0/0</div>
+        <div class="am-info" id="amInfo">0.0 overs · target —</div>
+      </div>
+      <div class="am-balls" id="amBalls"></div>
+      <div class="am-flash" id="amFlash"></div>
+    </div>
+    <div class="demo-note blink">▲ THIS IS A SIMULATION — THE REAL, CONTROLLABLE DEMO IS BELOW ▲</div>
+  </div>
+</section>
+
+<!-- ================= PLAYER JOURNEY ================= -->
+<section id="journey">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ SELECT LEVEL ■</span>
+      <h2>THE PLAYER JOURNEY — FROM PHONE TO STADIUM</h2>
+      <p>The complete flow, exactly as a player experiences it. No passwords, no training, no manuals.
+         If you can use WhatsApp, you can run a stadium.</p>
+    </div>
+    <div class="levels">
+      <div class="level"><span class="lv">LEVEL 1</span><div><div class="em">📱</div>
+        <h3>INSERT PHONE NUMBER</h3>
+        <p>Sign in with <b>phone number + OTP</b> — the same way every app in India works. No passwords,
+           no forms, ten seconds and you're in with your own player profile.</p></div></div>
+      <div class="level"><span class="lv">LEVEL 2</span><div><div class="em">🛡️</div>
+        <h3>BUILD YOUR SQUAD</h3>
+        <p>Create your team once — name, logo, colors — and <b>invite friends by phone number</b>.
+           The squad is saved forever. Every weekend, same team, one tap.</p></div></div>
+      <div class="level"><span class="lv">LEVEL 3</span><div><div class="em">📅</div>
+        <h3>BOOK THE TURF</h3>
+        <p>Book a slot at a CricAdda turf. When your slot starts, <b>the big screen greets your team by name</b>.
+           The stadium is yours for the hour.</p></div></div>
+      <div class="level"><span class="lv">LEVEL 4</span><div><div class="em">🔑</div>
+        <h3>ENTER THE CODE</h3>
+        <p>The turf screen shows a <b>4-digit pairing code</b>. Type it into the app and your phone becomes
+           the remote control for the entire turf — teams, toss, themes, everything.</p></div></div>
+      <div class="level"><span class="lv">LEVEL 5</span><div><div class="em">🏏</div>
+        <h3>PLAY THE MATCH</h3>
+        <p>Score ball-by-ball with big fast buttons. Every tap hits the big screen in <b>under a second</b>.
+           Sixes explode into full-screen celebrations with stadium sound. Fifties get the player's name in lights.</p></div></div>
+      <div class="level"><span class="lv">LEVEL 6</span><div><div class="em">⚡</div>
+        <h3>AUTO-DETECT MAGIC</h3>
+        <p>Boundary sensors and AI cameras <b>detect 4s, 6s and runs by themselves</b>. The scorer just confirms
+           with one tap — and can override anything. Hardware detects, human is always the boss.</p></div></div>
+      <div class="level"><span class="lv">LEVEL 7</span><div><div class="em">🏆</div>
+        <h3>CLAIM THE LOOT</h3>
+        <p>Match ends: result, full scorecards and <b>Player of the Match</b> on the big screen. Everyone gets the
+           scorecard + auto-cut highlight clips on WhatsApp. Every ball you ever play builds your <b>career stats</b>
+           and city leaderboard rank.</p></div></div>
+      <div class="level boss"><span class="lv">BOSS LEVEL</span><div><div class="em">👑</div>
+        <h3>TOURNAMENTS</h3>
+        <p>Leagues and knockouts with auto fixtures and live points tables on the screen. Spectators at home follow
+           <b>ball-by-ball with no app and no login</b> — just the match code.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOW THE MACHINE WORKS ================= -->
+<section id="machine">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ THE MACHINE ■</span>
+      <h2>HOW THE PIECES CONNECT</h2>
+      <p>Everything at the turf runs on local Wi-Fi through the Turf Hub — a match never stops
+         even if the internet dies. The cloud handles logins, saved teams, stats and highlights.</p>
+    </div>
+    <div class="arcade-frame flowchart">
+      <svg viewBox="0 0 760 320" width="100%" role="img" aria-label="System diagram">
+        <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#38bdf8"/></marker></defs>
+        <rect x="14" y="26" width="470" height="270" fill="none" stroke="#24466e" stroke-width="3" stroke-dasharray="10 6"/>
+        <text x="30" y="52" fill="#8fa9c9" font-size="17">THE TURF · LOCAL WI-FI · SURVIVES INTERNET CUTS</text>
+        <rect x="34" y="76" width="170" height="84" fill="#12233d" stroke="#22c55e" stroke-width="3"/>
+        <text x="119" y="112" fill="#eaf2fc" font-size="12" class="pxt" text-anchor="middle">🖥 BIG SCREEN</text>
+        <text x="119" y="140" fill="#8fa9c9" font-size="16" text-anchor="middle">behind the bowler</text>
+        <rect x="290" y="76" width="170" height="84" fill="#12233d" stroke="#fbbf24" stroke-width="3"/>
+        <text x="375" y="112" fill="#eaf2fc" font-size="12" class="pxt" text-anchor="middle">🧠 TURF HUB</text>
+        <text x="375" y="140" fill="#8fa9c9" font-size="16" text-anchor="middle">merges every event</text>
+        <rect x="34" y="196" width="170" height="72" fill="#12233d" stroke="#38bdf8" stroke-width="3"/>
+        <text x="119" y="226" fill="#eaf2fc" font-size="10" class="pxt" text-anchor="middle">⚡ SENSORS + 📷 AI</text>
+        <text x="119" y="252" fill="#8fa9c9" font-size="16" text-anchor="middle">detect 4s, 6s &amp; runs</text>
+        <rect x="290" y="196" width="170" height="72" fill="#12233d" stroke="#ef4444" stroke-width="3"/>
+        <text x="375" y="226" fill="#eaf2fc" font-size="10" class="pxt" text-anchor="middle">📱 PHONE = REMOTE</text>
+        <text x="375" y="252" fill="#8fa9c9" font-size="16" text-anchor="middle">pairs with code · manual wins</text>
+        <rect x="556" y="96" width="184" height="140" fill="#12233d" stroke="#24466e" stroke-width="3"/>
+        <text x="648" y="130" fill="#eaf2fc" font-size="12" class="pxt" text-anchor="middle">☁ CLOUD</text>
+        <text x="648" y="158" fill="#8fa9c9" font-size="15" text-anchor="middle">OTP login · saved teams</text>
+        <text x="648" y="180" fill="#8fa9c9" font-size="15" text-anchor="middle">career stats · leaderboards</text>
+        <text x="648" y="202" fill="#8fa9c9" font-size="15" text-anchor="middle">highlights · tournaments</text>
+        <line x1="290" y1="118" x2="212" y2="118" stroke="#38bdf8" stroke-width="3" marker-end="url(#arr)"/>
+        <line x1="204" y1="222" x2="288" y2="152" stroke="#38bdf8" stroke-width="3" marker-end="url(#arr)"/>
+        <line x1="375" y1="196" x2="375" y2="168" stroke="#38bdf8" stroke-width="3" marker-end="url(#arr)"/>
+        <line x1="466" y1="118" x2="548" y2="118" stroke="#38bdf8" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#arr)"/>
+        <text x="507" y="104" fill="#8fa9c9" font-size="14" text-anchor="middle">syncs when online</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GAMEPLAY FOOTAGE ================= -->
+<section id="gallery">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ GAMEPLAY FOOTAGE ■</span>
+      <h2>REAL SCREENSHOTS FROM THE WORKING BUILD</h2>
+      <p>Nothing below is a mock-up — every frame is captured from the running demo on this site.</p>
+    </div>
+    <div class="shots">
+      <figure class="shot"><img src="img/screen-pairing.png" alt="Turf screen showing pairing code"><figcaption>LEVEL 4 — THE SCREEN SHOWS THE PAIRING CODE</figcaption></figure>
+      <figure class="shot"><img src="img/screen-live.png" alt="Live scoreboard"><figcaption>LEVEL 5 — LIVE STADIUM SCOREBOARD</figcaption></figure>
+      <figure class="shot"><img src="img/screen-six.png" alt="Six celebration"><figcaption>LEVEL 5 — SIX! FULL-SCREEN CELEBRATION + SOUND</figcaption></figure>
+      <figure class="shot"><img src="img/screen-result.png" alt="Result with scorecards"><figcaption>LEVEL 7 — RESULT, SCORECARDS &amp; PLAYER OF THE MATCH</figcaption></figure>
+      <figure class="shot tall"><img src="img/phone-autodetect.png" alt="Auto-detect confirmation on phone"><figcaption>LEVEL 6 — SENSOR FIRED, ONE TAP TO CONFIRM</figcaption></figure>
+      <figure class="shot tall"><img src="img/spectator-live.png" alt="Spectator live view"><figcaption>BOSS LEVEL — FAMILY FOLLOWS LIVE, NO APP NEEDED</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLAY THE DEMO ================= -->
+<section id="demo">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ NO COIN NEEDED ■</span>
+      <h2>▶ PLAY THE LIVE DEMO NOW</h2>
+      <p>These four pages ARE the product — running live on this very server. Open them on different
+         devices and watch them talk to each other in real time.</p>
+    </div>
+    <div class="cabinets">
+      <a class="cab" href="screen.html" target="_blank"><div class="em">🖥️</div>
+        <h3>BIG SCREEN</h3><p>Open on a laptop or TV. This is the turf's LED screen — it shows the pairing code.</p></a>
+      <a class="cab" href="controller.html" target="_blank"><div class="em">📱</div>
+        <h3>PHONE CONTROLLER</h3><p>Open on a phone (same Wi-Fi). Enter the code, set teams, score every ball.</p></a>
+      <a class="cab" href="sensor.html" target="_blank"><div class="em">⚡</div>
+        <h3>SENSOR SIM</h3><p>Pretends to be the boundary sensor &amp; AI camera. Fire a detection, watch the confirm flow.</p></a>
+      <a class="cab" href="spectator.html" target="_blank"><div class="em">👀</div>
+        <h3>SPECTATOR</h3><p>Ball-by-ball live view with full scorecards. No app, no login — just the code.</p></a>
+    </div>
+    <div class="steps60">
+      <ol>
+        <li><span><b>Open BIG SCREEN</b> in a new window (or on a TV) — a 4-digit code appears. Click <code>enable sound</code>.</span></li>
+        <li><span><b>Open PHONE CONTROLLER</b> on your phone at this same address — enter the code. Teams are pre-filled: just hit <b>start</b>.</span></li>
+        <li><span><b>Score a few balls.</b> Tap <code>4</code> or <code>6</code> and watch the big screen erupt.</span></li>
+        <li><span><b>Open SENSOR SIM</b> anywhere and fire a boundary — the controller gets a <b>⚡ confirm</b> banner. That's hybrid auto-scoring.</span></li>
+        <li><span><b>Finish the match</b> — result, scorecards and Player of the Match appear on the big screen automatically.</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ================= POWER-UPS ================= -->
+<section id="powerups">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ POWER-UPS ■</span>
+      <h2>FEATURES THAT KEEP PLAYERS COMING BACK</h2>
+    </div>
+    <div class="powerups">
+      <div class="pu"><div class="em">🎬</div><h3>INSTANT REPLAY</h3><p>Cameras keep a rolling buffer — push the last 10 seconds to the big screen for that huge six or tight run-out.</p></div>
+      <div class="pu"><div class="em">📲</div><h3>AUTO HIGHLIGHTS</h3><p>Every 4, 6 and wicket auto-clipped and delivered to all players on WhatsApp after the match — free marketing for the turf.</p></div>
+      <div class="pu"><div class="em">📊</div><h3>CAREER STATS</h3><p>Every ball ever played builds each player's record. Averages, strike rates, best figures — switching turfs means abandoning your average.</p></div>
+      <div class="pu"><div class="em">🥇</div><h3>LEADERBOARDS</h3><p>Turf-level and city-level: most runs, most wickets, best SR — weekly and monthly. Rivalries fill weekday slots.</p></div>
+      <div class="pu"><div class="em">🎯</div><h3>BALL SPEED GUN</h3><p>Camera-based bowling speed on every delivery, displayed on screen like a TV broadcast.</p></div>
+      <div class="pu"><div class="em">🎵</div><h3>WALK-IN MUSIC</h3><p>Batsman walks in to their own intro card — photo, nickname, stats, entrance music. Stadium energy, guaranteed.</p></div>
+      <div class="pu"><div class="em">📺</div><h3>LIVE STREAMING</h3><p>One-tap stream to YouTube with the score overlay baked in. Family watches from anywhere.</p></div>
+      <div class="pu"><div class="em">💰</div><h3>SPONSOR SLOTS</h3><p>Local brand ads between overs and in idle hours — a brand-new revenue stream for the turf owner.</p></div>
+      <div class="pu"><div class="em">🔒</div><h3>DISPUTE-PROOF</h3><p>Every ball logged with who scored it, when, and how (manual or sensor). The argument era is over.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PACKAGES ================= -->
+<section id="packs">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ CHOOSE YOUR PLAYER ■</span>
+      <h2>THREE TIERS — START SMALL, LEVEL UP</h2>
+      <p>Each tier is an upgrade path. A turf can start with Starter and level up as revenue grows —
+         the software is the same, hardware unlocks the next powers.</p>
+    </div>
+    <div class="packs">
+      <div class="pack">
+        <h3>STARTER</h3><div class="lvl">LVL 1 · SCREEN + APP</div>
+        <ul>
+          <li>LED screen + hub + speakers</li>
+          <li>Phone OTP login &amp; saved teams</li>
+          <li>Code pairing &amp; manual scoring</li>
+          <li>Live scoreboard &amp; celebrations</li>
+          <li>Digital scorecards, dispute-proof log</li>
+          <li class="no">Sensors &amp; AI cameras</li>
+          <li class="no">Replays &amp; auto-highlights</li>
+        </ul>
+      </div>
+      <div class="pack hot">
+        <div class="flag">★ MOST POPULAR ★</div>
+        <h3>PRO</h3><div class="lvl">LVL 2 · + EXPERIENCE &amp; COMMUNITY</div>
+        <ul>
+          <li>Everything in STARTER</li>
+          <li>Themes, animations, awards</li>
+          <li>Tournaments &amp; points tables</li>
+          <li>Career stats &amp; leaderboards</li>
+          <li>Spectator live view (no app)</li>
+          <li>Sponsor ad slots + idle-mode content</li>
+          <li class="no">Sensors &amp; AI cameras</li>
+        </ul>
+      </div>
+      <div class="pack">
+        <h3>STADIUM</h3><div class="lvl">LVL 3 · FULL AUTOMATION</div>
+        <ul>
+          <li>Everything in PRO</li>
+          <li>Boundary sensors — auto 4s</li>
+          <li>AI cameras — auto 6s &amp; runs</li>
+          <li>Instant replays on screen</li>
+          <li>Auto highlights to WhatsApp</li>
+          <li>Ball speed display</li>
+          <li>Live streaming with overlay</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= THE QUEST (business process) ================= -->
+<section id="quest">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">■ CO-OP MODE ■</span>
+      <h2>THE PROCESS — FROM FIRST CALL TO FULL STADIUM</h2>
+      <p>What working with us looks like, start to finish. Typical time from survey to launch:
+         3–4 weeks for Starter/Pro, 6–8 weeks for Stadium.</p>
+    </div>
+    <div class="quest">
+      <div class="q-step"><div class="q-rail"><div class="q-dot">WK 0</div><div class="q-line"></div></div>
+        <div class="q-body"><h3>1 · CONTACT + DEMO</h3><p>A 30-minute walkthrough of exactly what you just saw on this page — live pairing, scoring, sensors. Your questions answered upfront: internet drops, ball hits, wrong detections — all handled by design.</p></div></div>
+      <div class="q-step"><div class="q-rail"><div class="q-dot">WK 1</div><div class="q-line"></div></div>
+        <div class="q-body"><h3>2 · TURF SURVEY</h3><p>We visit your turf: screen size &amp; placement, sight lines, <b>ball-impact protection plan</b>, power and network audit. You get a tailored quote — hardware one-time, software as subscription or revenue-share.</p></div></div>
+      <div class="q-step"><div class="q-rail"><div class="q-dot">WK 2-3</div><div class="q-line"></div></div>
+        <div class="q-body"><h3>3 · INSTALL</h3><p>Screen, hub and speakers go in (sensors &amp; cameras for Stadium tier). Everything weatherproofed, surge-protected, and running offline-first so matches never stop.</p></div></div>
+      <div class="q-step"><div class="q-rail"><div class="q-dot">WK 4</div><div class="q-line"></div></div>
+        <div class="q-body"><h3>4 · ONBOARD + LAUNCH</h3><p>We personally onboard your regular teams in week one — the first ten squads seed the leaderboard and evangelize the rest. Optional launch tournament to make noise in the neighborhood.</p></div></div>
+      <div class="q-step"><div class="q-rail"><div class="q-dot">∞</div></div>
+        <div class="q-body"><h3>5 · EARN &amp; LEVEL UP</h3><p>Premium "stadium mode" slots at higher rates, sponsor ads between overs, hosted tournaments, and repeat bookings from players defending their stats. Remote monitoring, content updates and new features included. When ad revenue grows — level up to the next tier.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FINAL CTA ================= -->
+<div class="final wrap">
+  <h2>READY PLAYER ONE?</h2>
+  <p>The first turf in a locality with a stadium screen owns the neighborhood's cricket community.
+     Be that turf.</p>
+  <div class="cta-row" style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+    <a class="btn primary" href="#demo" style="text-decoration:none">▶ REPLAY THE DEMO</a>
+    <a class="btn gold" href="mailto:hello@cricadda.example?subject=CricAdda%20for%20my%20turf" style="text-decoration:none">📞 CONTACT US — FREE TURF SURVEY</a>
+  </div>
 </div>
 
-<div class="launch">
-  <a href="screen.html"><div class="card">
-    <div class="em">🖥️</div><h3>Big Screen</h3>
-    <p>Open on a laptop / TV. This is the LED screen at the turf. It shows the pairing code.</p>
-  </div></a>
-  <a href="controller.html"><div class="card">
-    <div class="em">📱</div><h3>Phone Controller</h3>
-    <p>Open on your phone (same Wi-Fi). Enter the code, set teams, score every ball.</p>
-  </div></a>
-  <a href="sensor.html"><div class="card">
-    <div class="em">⚡</div><h3>Sensor Simulator</h3>
-    <p>Pretends to be the boundary sensor &amp; AI camera — demo the auto-detection flow.</p>
-  </div></a>
-  <a href="spectator.html"><div class="card">
-    <div class="em">👀</div><h3>Spectator View</h3>
-    <p>Friends &amp; family follow ball-by-ball live with full scorecards. View only, no login.</p>
-  </div></a>
-</div>
+<footer>
+  <div class="px">CRICADDA © 2026 · GAME OVER? INSERT COIN TO CONTINUE</div>
+  <div style="margin-top:10px">Full docs in the repo: beginner guide · architecture · roadmap · case study · client proposal</div>
+</footer>
 
-<h2 class="sec">Try it in 60 seconds</h2>
-<div class="steps">
-  <div class="card"><div class="num">1</div><div><b>Open the Big Screen</b><p>On this computer (or a TV), open <b>Big Screen</b>. A 4-digit pairing code appears — exactly what the LED screen at a real turf would show.</p></div></div>
-  <div class="card"><div class="num">2</div><div><b>Pair your phone</b><p>On a phone on the same Wi-Fi, open this page's address, tap <b>Phone Controller</b>, enter the code. Your phone is now the remote for the screen.</p></div></div>
-  <div class="card"><div class="num">3</div><div><b>Start the match</b><p>Enter team names &amp; players (defaults are pre-filled), pick overs, and start. The big screen flips to a live stadium scoreboard instantly.</p></div></div>
-  <div class="card"><div class="num">4</div><div><b>Score &amp; celebrate</b><p>Tap runs on the phone — the screen updates in real time. Hit <b>4</b> or <b>6</b> and watch the full-screen celebration (enable sound on the screen!).</p></div></div>
-  <div class="card"><div class="num">5</div><div><b>See the magic: auto-detection</b><p>Open the <b>Sensor Simulator</b> on any device and fire a "boundary hit". The scorer's phone gets a <span style="color:var(--blue)">⚡ auto-detected</span> banner — one tap to confirm, and it's scored. That's hybrid scoring: hardware detects, human confirms, manual always wins.</p></div></div>
-</div>
+<script>
+// ---------------- attract mode: self-playing scoreboard ----------------
+(() => {
+  const teams = [['ROYAL STRIKERS', 'TURF TITANS'], ['GULLY GLADIATORS', 'NIGHT RIDERS']];
+  let pair = 0, innings = 0, runs = 0, wkts = 0, balls = 0, target = null, over = [];
+  const OVERS = 2;
+  const $ = (id) => document.getElementById(id);
 
-<h2 class="sec">How the pieces connect</h2>
-<div class="card" style="overflow-x:auto">
-<svg viewBox="0 0 720 300" width="100%" role="img" aria-label="System diagram">
-  <defs>
-    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
-      <path d="M0,0 L8,4 L0,8 z" fill="#38bdf8"/>
-    </marker>
-  </defs>
-  <!-- turf -->
-  <rect x="20" y="30" width="430" height="240" rx="16" fill="none" stroke="#24466e" stroke-dasharray="6 5"/>
-  <text x="36" y="56" fill="#8fa9c9" font-size="13" font-weight="700">THE TURF (local Wi-Fi — works even if internet drops)</text>
-  <!-- screen -->
-  <rect x="40" y="80" width="150" height="80" rx="10" fill="#12233d" stroke="#22c55e" stroke-width="2"/>
-  <text x="115" y="112" fill="#eaf2fc" font-size="14" font-weight="800" text-anchor="middle">🖥️ Big Screen</text>
-  <text x="115" y="132" fill="#8fa9c9" font-size="11" text-anchor="middle">behind the bowler</text>
-  <!-- hub -->
-  <rect x="250" y="80" width="150" height="80" rx="10" fill="#12233d" stroke="#fbbf24" stroke-width="2"/>
-  <text x="325" y="112" fill="#eaf2fc" font-size="14" font-weight="800" text-anchor="middle">🧠 Turf Hub</text>
-  <text x="325" y="132" fill="#8fa9c9" font-size="11" text-anchor="middle">merges every event</text>
-  <!-- sensors -->
-  <rect x="40" y="190" width="150" height="60" rx="10" fill="#12233d" stroke="#38bdf8" stroke-width="2"/>
-  <text x="115" y="215" fill="#eaf2fc" font-size="13" font-weight="800" text-anchor="middle">⚡ Sensors + 📷 AI cams</text>
-  <text x="115" y="234" fill="#8fa9c9" font-size="11" text-anchor="middle">detect 4s, 6s &amp; runs</text>
-  <!-- phone -->
-  <rect x="250" y="190" width="150" height="60" rx="10" fill="#12233d" stroke="#ef4444" stroke-width="2"/>
-  <text x="325" y="215" fill="#eaf2fc" font-size="13" font-weight="800" text-anchor="middle">📱 Phone (scorer)</text>
-  <text x="325" y="234" fill="#8fa9c9" font-size="11" text-anchor="middle">pairs with code · manual wins</text>
-  <!-- cloud -->
-  <rect x="520" y="95" width="170" height="110" rx="16" fill="#12233d" stroke="#24466e"/>
-  <text x="605" y="130" fill="#eaf2fc" font-size="14" font-weight="800" text-anchor="middle">☁️ Cloud</text>
-  <text x="605" y="152" fill="#8fa9c9" font-size="11" text-anchor="middle">phone-OTP login · teams</text>
-  <text x="605" y="170" fill="#8fa9c9" font-size="11" text-anchor="middle">career stats · leaderboards</text>
-  <text x="605" y="188" fill="#8fa9c9" font-size="11" text-anchor="middle">highlights · tournaments</text>
-  <!-- arrows -->
-  <line x1="250" y1="120" x2="196" y2="120" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
-  <line x1="190" y1="220" x2="250" y2="150" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
-  <line x1="325" y1="190" x2="325" y2="166" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
-  <line x1="406" y1="120" x2="514" y2="120" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-  <text x="460" y="108" fill="#8fa9c9" font-size="10" text-anchor="middle">syncs when online</text>
-</svg>
-</div>
+  function flash(cls, txt) {
+    const f = $('amFlash');
+    f.className = 'am-flash show ' + cls;
+    f.textContent = txt;
+    setTimeout(() => { f.className = 'am-flash'; }, 1000);
+  }
+  function chip(d) {
+    const cls = d === 'W' ? 'bw' : d === '4' ? 'b4' : d === '6' ? 'b6' : '';
+    return `<span class="ball-chip ${cls}">${d}</span>`;
+  }
+  function reset(newPair) {
+    if (newPair) pair = (pair + 1) % teams.length;
+    innings = 0; runs = 0; wkts = 0; balls = 0; target = null; over = [];
+  }
+  function tick() {
+    const outcomes = [0, 1, 1, 2, 4, 6, 0, 1, 'W', 4, 2, 6];
+    const o = outcomes[Math.floor(Math.random() * outcomes.length)];
+    balls++;
+    if (o === 'W') { wkts++; over.push('W'); flash('fw', 'OUT!'); }
+    else { runs += o; over.push(String(o)); if (o === 4) flash('f4', 'FOUR!'); if (o === 6) flash('f6', 'SIX!'); }
+    if (over.length > 6) over = over.slice(-6);
 
-<h2 class="sec">What this demo proves</h2>
-<div class="steps">
-  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>The pairing model works</b><p>Screen shows a code → phone takes control. No logins needed at the turf, no training, no keyboard.</p></div></div>
-  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>Real-time feels instant</b><p>Every tap reflects on the big screen in well under a second over local Wi-Fi.</p></div></div>
-  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>Hybrid scoring is the right UX</b><p>Auto-detections arrive as one-tap confirmations; a blue ring marks sensor-scored balls; undo fixes anything. Manual always wins.</p></div></div>
-  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>Event-sourced engine</b><p>Every ball is a logged event and the scoreboard is recomputed from the log — which is exactly why undo, corrections and dispute-proof scoring are trivial. Same architecture scales to production.</p></div></div>
-</div>
+    const done = balls >= OVERS * 6 || wkts >= 5 || (target && runs >= target);
+    $('amTeam').textContent = teams[pair][innings] + ' BATTING';
+    $('amRuns').textContent = `${runs}/${wkts}`;
+    $('amInfo').textContent = `${Math.floor(balls / 6)}.${balls % 6} overs · ` + (target ? `need ${Math.max(0, target - runs)} to win` : `setting the target`);
+    $('amBalls').innerHTML = over.map(chip).join('');
 
-<p class="dim" style="font-size:13px;text-align:center;margin-top:26px">
-  CricAdda prototype · full docs in the <b>docs/</b> folder · production plan in <b>docs/04-roadmap.md</b>
-</p>
+    if (done) {
+      if (innings === 0) { innings = 1; target = runs + 1; runs = 0; wkts = 0; balls = 0; over = []; }
+      else { flash(runs >= target ? 'f6' : 'f4', runs >= target ? 'CHASED!' : 'DEFENDED!'); setTimeout(() => reset(true), 1100); }
+    }
+  }
+  setInterval(tick, 1400);
+})();
+</script>
 </body>
 </html>

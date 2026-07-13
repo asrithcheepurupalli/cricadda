@@ -54,7 +54,29 @@
   @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
   .src-tag { font-size: 1.6vw; font-weight: 800; color: var(--blue); border: 2px solid var(--blue); border-radius: 999px; padding: 0.6vh 1.6vw; }
 
-  .sound-btn { position: fixed; right: 16px; bottom: 16px; z-index: 60; opacity: 0.6; font-size: 13px; padding: 8px 14px; }
+  .sound-btn { position: fixed; right: 16px; bottom: 16px; z-index: 60; opacity: 0.6; font-size: 9px; padding: 8px 14px; }
+
+  /* retro arcade type overrides */
+  .logo, .code, .big-score, .team-name, .overlay .big, .code-label, .sec-label, .center-msg .headline, .sc h4 {
+    font-family: 'Press Start 2P', monospace; font-weight: 400;
+  }
+  .logo { font-size: 3.6vw; }
+  .code { font-size: 9vw; letter-spacing: 0.08em; }
+  .code-label { font-size: 1.1vw; }
+  .team-name { font-size: 2.2vw; }
+  .big-score { font-size: 6.5vw; }
+  .big-overs { font-size: 2.2vw; }
+  .hint { font-size: 2vw; }
+  .overlay .big { font-size: 11vw; }
+  .overlay.milestone .big { font-size: 8vw; }
+  .overlay .sub { font-size: 2.6vw; }
+  .sec-label { font-size: 0.9vw; }
+  .pname { font-size: 2.2vw; } .pstat { font-size: 2.2vw; }
+  .center-msg .headline { font-size: 3.2vw; line-height: 1.6; }
+  .sc h4 { font-size: 1.2vw; line-height: 1.7; }
+  .topbar .brand { font-family: 'Press Start 2P', monospace; font-size: 1.3vw; }
+  .footer-strip { font-size: 1.6vw; padding-right: 12vw; }
+  .chase-bar { font-family: 'Press Start 2P', monospace; font-size: 1.5vw; line-height: 1.8; }
 
   /* result / break */
   .center-msg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; text-align: center; }

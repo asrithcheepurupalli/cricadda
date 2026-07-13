@@ -8,15 +8,21 @@ controlled from a phone. Players log in with their phone number, create teams, p
 the turf screen using a simple code, and score matches manually or automatically using
 boundary sensors and AI cameras.
 
-## 🚀 Working Demo — Run It Now
+## 🚀 The Client Website + Working Demo — Run It Now
 
-A fully working prototype lives in [`prototype/`](prototype/). Zero dependencies, just Node.js:
+One website carries the entire pitch **and** the live demo. Zero dependencies, just Node.js:
 
 ```bash
 node prototype/server.js
 ```
 
-Then:
+Open `http://localhost:3000` → a retro-arcade landing page (pixel fonts, CRT scanlines,
+self-playing "attract mode" scoreboard) that walks a client through everything top to
+bottom: the story, the player journey level-by-level, how the system connects, real
+screenshots, the live demo launchers, features, the three packages, and the full
+business process from first call to launch.
+
+Demo pages (linked from the site):
 1. **Big screen** (laptop/TV): open `http://localhost:3000/screen.html` → shows a 4-digit pairing code
 2. **Phone** (same Wi-Fi): open `http://<your-ip>:3000` (printed by the server) → Phone Controller → enter the code
 3. **Sensor demo**: open `/sensor.html` anywhere to simulate the boundary sensor / AI camera firing
