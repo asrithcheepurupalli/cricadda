@@ -1,0 +1,90 @@
+/* CricAdda prototype — shared styles */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0a1628;
+  --panel: #12233d;
+  --panel2: #1a3050;
+  --line: #24466e;
+  --text: #eaf2fc;
+  --dim: #8fa9c9;
+  --green: #22c55e;
+  --gold: #fbbf24;
+  --red: #ef4444;
+  --blue: #38bdf8;
+  --radius: 14px;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { font-weight: 800; letter-spacing: -0.02em; }
+.dim { color: var(--dim); }
+.gold { color: var(--gold); }
+.green { color: var(--green); }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+button, .btn {
+  font: inherit;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease;
+  touch-action: manipulation;
+  user-select: none;
+}
+button:active { transform: scale(0.96); }
+button.primary { background: var(--green); border-color: var(--green); color: #052b12; }
+button.danger { background: var(--red); border-color: var(--red); color: #fff; }
+button.gold { background: var(--gold); border-color: var(--gold); color: #3a2a00; }
+input, select, textarea {
+  font: inherit;
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+input:focus, textarea:focus { outline: 2px solid var(--blue); border-color: transparent; }
+label { display: block; font-size: 13px; color: var(--dim); font-weight: 700; margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.row { display: flex; gap: 12px; }
+.row > * { flex: 1; }
+.badge {
+  display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: 0.08em;
+  padding: 4px 10px; border-radius: 999px; text-transform: uppercase;
+}
+.badge.live { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+.badge.auto { background: rgba(56,189,248,0.15); color: var(--blue); border: 1px solid rgba(56,189,248,0.4); }
+
+/* ball chips (this over) */
+.balls { display: flex; gap: 8px; flex-wrap: wrap; }
+.ball-chip {
+  min-width: 38px; height: 38px; padding: 0 6px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 15px;
+  background: var(--panel2); border: 1px solid var(--line);
+}
+.ball-chip.b4 { background: var(--green); color: #052b12; border: none; }
+.ball-chip.b6 { background: var(--gold); color: #3a2a00; border: none; }
+.ball-chip.bw { background: var(--red); color: #fff; border: none; }
+.ball-chip.sensor { box-shadow: 0 0 0 2px var(--blue); }
+
+/* toast */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 20px; font-weight: 700; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s; z-index: 100;
+}
+.toast.show { opacity: 1; }

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CricAdda — Demo Home</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { max-width: 760px; margin: 0 auto; padding: 24px 18px 60px; }
+  .hero { text-align: center; padding: 24px 0 8px; }
+  .hero h1 { font-size: 40px; } .hero h1 span { color: var(--green); }
+  .hero p { color: var(--dim); font-size: 16px; margin-top: 8px; }
+  .launch { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 24px 0; }
+  @media (min-width: 560px) { .launch { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 720px) { .launch { grid-template-columns: repeat(4, 1fr); } }
+  .launch a { text-decoration: none; }
+  .launch .card { text-align: center; height: 100%; transition: border-color 0.15s; }
+  .launch .card:hover { border-color: var(--green); }
+  .launch .em { font-size: 34px; }
+  .launch h3 { font-size: 17px; margin: 8px 0 4px; }
+  .launch p { font-size: 13px; color: var(--dim); line-height: 1.5; }
+  .steps { counter-reset: s; margin: 18px 0; }
+  .steps .card { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 10px; }
+  .num { flex: 0 0 34px; height: 34px; border-radius: 50%; background: var(--green); color: #052b12;
+         display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; }
+  .steps p { font-size: 14px; color: var(--dim); line-height: 1.55; margin-top: 2px; }
+  .steps b { color: var(--text); }
+  h2.sec { margin: 30px 0 12px; font-size: 22px; }
+  svg text { font-family: system-ui, sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Cric<span>Adda</span> <small style="font-size:16px;color:var(--dim);font-weight:700">working demo</small></h1>
+  <p>Turn any cricket turf into a stadium — big-screen scoreboard, phone control, auto-detection.</p>
+</div>
+
+<div class="launch">
+  <a href="screen.html"><div class="card">
+    <div class="em">🖥️</div><h3>Big Screen</h3>
+    <p>Open on a laptop / TV. This is the LED screen at the turf. It shows the pairing code.</p>
+  </div></a>
+  <a href="controller.html"><div class="card">
+    <div class="em">📱</div><h3>Phone Controller</h3>
+    <p>Open on your phone (same Wi-Fi). Enter the code, set teams, score every ball.</p>
+  </div></a>
+  <a href="sensor.html"><div class="card">
+    <div class="em">⚡</div><h3>Sensor Simulator</h3>
+    <p>Pretends to be the boundary sensor &amp; AI camera — demo the auto-detection flow.</p>
+  </div></a>
+  <a href="spectator.html"><div class="card">
+    <div class="em">👀</div><h3>Spectator View</h3>
+    <p>Friends &amp; family follow ball-by-ball live with full scorecards. View only, no login.</p>
+  </div></a>
+</div>
+
+<h2 class="sec">Try it in 60 seconds</h2>
+<div class="steps">
+  <div class="card"><div class="num">1</div><div><b>Open the Big Screen</b><p>On this computer (or a TV), open <b>Big Screen</b>. A 4-digit pairing code appears — exactly what the LED screen at a real turf would show.</p></div></div>
+  <div class="card"><div class="num">2</div><div><b>Pair your phone</b><p>On a phone on the same Wi-Fi, open this page's address, tap <b>Phone Controller</b>, enter the code. Your phone is now the remote for the screen.</p></div></div>
+  <div class="card"><div class="num">3</div><div><b>Start the match</b><p>Enter team names &amp; players (defaults are pre-filled), pick overs, and start. The big screen flips to a live stadium scoreboard instantly.</p></div></div>
+  <div class="card"><div class="num">4</div><div><b>Score &amp; celebrate</b><p>Tap runs on the phone — the screen updates in real time. Hit <b>4</b> or <b>6</b> and watch the full-screen celebration (enable sound on the screen!).</p></div></div>
+  <div class="card"><div class="num">5</div><div><b>See the magic: auto-detection</b><p>Open the <b>Sensor Simulator</b> on any device and fire a "boundary hit". The scorer's phone gets a <span style="color:var(--blue)">⚡ auto-detected</span> banner — one tap to confirm, and it's scored. That's hybrid scoring: hardware detects, human confirms, manual always wins.</p></div></div>
+</div>
+
+<h2 class="sec">How the pieces connect</h2>
+<div class="card" style="overflow-x:auto">
+<svg viewBox="0 0 720 300" width="100%" role="img" aria-label="System diagram">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+  <!-- turf -->
+  <rect x="20" y="30" width="430" height="240" rx="16" fill="none" stroke="#24466e" stroke-dasharray="6 5"/>
+  <text x="36" y="56" fill="#8fa9c9" font-size="13" font-weight="700">THE TURF (local Wi-Fi — works even if internet drops)</text>
+  <!-- screen -->
+  <rect x="40" y="80" width="150" height="80" rx="10" fill="#12233d" stroke="#22c55e" stroke-width="2"/>
+  <text x="115" y="112" fill="#eaf2fc" font-size="14" font-weight="800" text-anchor="middle">🖥️ Big Screen</text>
+  <text x="115" y="132" fill="#8fa9c9" font-size="11" text-anchor="middle">behind the bowler</text>
+  <!-- hub -->
+  <rect x="250" y="80" width="150" height="80" rx="10" fill="#12233d" stroke="#fbbf24" stroke-width="2"/>
+  <text x="325" y="112" fill="#eaf2fc" font-size="14" font-weight="800" text-anchor="middle">🧠 Turf Hub</text>
+  <text x="325" y="132" fill="#8fa9c9" font-size="11" text-anchor="middle">merges every event</text>
+  <!-- sensors -->
+  <rect x="40" y="190" width="150" height="60" rx="10" fill="#12233d" stroke="#38bdf8" stroke-width="2"/>
+  <text x="115" y="215" fill="#eaf2fc" font-size="13" font-weight="800" text-anchor="middle">⚡ Sensors + 📷 AI cams</text>
+  <text x="115" y="234" fill="#8fa9c9" font-size="11" text-anchor="middle">detect 4s, 6s &amp; runs</text>
+  <!-- phone -->
+  <rect x="250" y="190" width="150" height="60" rx="10" fill="#12233d" stroke="#ef4444" stroke-width="2"/>
+  <text x="325" y="215" fill="#eaf2fc" font-size="13" font-weight="800" text-anchor="middle">📱 Phone (scorer)</text>
+  <text x="325" y="234" fill="#8fa9c9" font-size="11" text-anchor="middle">pairs with code · manual wins</text>
+  <!-- cloud -->
+  <rect x="520" y="95" width="170" height="110" rx="16" fill="#12233d" stroke="#24466e"/>
+  <text x="605" y="130" fill="#eaf2fc" font-size="14" font-weight="800" text-anchor="middle">☁️ Cloud</text>
+  <text x="605" y="152" fill="#8fa9c9" font-size="11" text-anchor="middle">phone-OTP login · teams</text>
+  <text x="605" y="170" fill="#8fa9c9" font-size="11" text-anchor="middle">career stats · leaderboards</text>
+  <text x="605" y="188" fill="#8fa9c9" font-size="11" text-anchor="middle">highlights · tournaments</text>
+  <!-- arrows -->
+  <line x1="250" y1="120" x2="196" y2="120" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="190" y1="220" x2="250" y2="150" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="325" y1="190" x2="325" y2="166" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="406" y1="120" x2="514" y2="120" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  <text x="460" y="108" fill="#8fa9c9" font-size="10" text-anchor="middle">syncs when online</text>
+</svg>
+</div>
+
+<h2 class="sec">What this demo proves</h2>
+<div class="steps">
+  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>The pairing model works</b><p>Screen shows a code → phone takes control. No logins needed at the turf, no training, no keyboard.</p></div></div>
+  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>Real-time feels instant</b><p>Every tap reflects on the big screen in well under a second over local Wi-Fi.</p></div></div>
+  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>Hybrid scoring is the right UX</b><p>Auto-detections arrive as one-tap confirmations; a blue ring marks sensor-scored balls; undo fixes anything. Manual always wins.</p></div></div>
+  <div class="card"><div class="num" style="background:var(--gold)">✓</div><div><b>Event-sourced engine</b><p>Every ball is a logged event and the scoreboard is recomputed from the log — which is exactly why undo, corrections and dispute-proof scoring are trivial. Same architecture scales to production.</p></div></div>
+</div>
+
+<p class="dim" style="font-size:13px;text-align:center;margin-top:26px">
+  CricAdda prototype · full docs in the <b>docs/</b> folder · production plan in <b>docs/04-roadmap.md</b>
+</p>
+</body>
+</html>

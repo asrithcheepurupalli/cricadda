@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CricAdda — Live Match</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { max-width: 520px; margin: 0 auto; padding: 16px 16px 50px; }
+  .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .head h1 { font-size: 22px; } .head h1 span { color: var(--green); }
+  .score-hero { text-align: center; padding: 8px 0 4px; }
+  .score-hero .t { color: var(--dim); font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .score-hero .r { font-size: 52px; font-weight: 900; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .score-hero .o { color: var(--dim); font-weight: 700; }
+  .score-hero .chase { color: var(--gold); font-weight: 800; margin-top: 4px; }
+  .now { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--dim); margin: 10px 2px; flex-wrap: wrap; gap: 6px; }
+  .now b { color: var(--text); }
+  h3.sec { font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; margin: 18px 0 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); }
+  th { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .result-hero { text-align: center; padding: 18px 10px; }
+  .result-hero .r { font-size: 22px; font-weight: 900; color: var(--gold); }
+  .result-hero .mom { margin-top: 10px; font-weight: 800; color: var(--blue); }
+  .live-dot { animation: blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity: 0.3; } }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Cric<span>Adda</span> <small class="dim" style="font-size:13px;font-weight:700">live</small></h1>
+  <span class="badge live" id="badge" style="display:none">● <span class="live-dot">LIVE</span></span>
+</div>
+
+<div class="card" id="joinCard">
+  <h2 style="font-size:18px">Watch a match live</h2>
+  <p class="dim" style="font-size:14px;margin-top:6px">Enter the match code shown on the turf's big screen. View only — no app, no login.</p>
+  <label>Match code</label>
+  <input id="codeInput" inputmode="numeric" maxlength="4" placeholder="0000"
+         style="font-size:30px;text-align:center;letter-spacing:0.3em;font-weight:900">
+  <button class="primary" style="width:100%;margin-top:14px" onclick="join()">Watch live</button>
+  <p class="dim" id="err" style="margin-top:8px;font-size:13px"></p>
+</div>
+
+<div id="live" style="display:none">
+  <div class="card">
+    <div class="score-hero">
+      <div class="t" id="vTeam"></div>
+      <div class="r" id="vScore"></div>
+      <div class="o" id="vOvers"></div>
+      <div class="chase" id="vChase"></div>
+    </div>
+    <div class="now" id="vNow"></div>
+    <div class="balls" id="vOver"></div>
+  </div>
+
+  <div class="card result-hero" id="vResult" style="display:none; margin-top:12px">
+    <div class="r" id="vResultText"></div>
+    <div class="mom" id="vMom"></div>
+  </div>
+
+  <div id="vCards"></div>
+</div>
+
+<script>
+let code = null;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+
+async function join() {
+  code = $('codeInput').value.trim();
+  const r = await fetch(`/api/room/${code}/pair`, { method: 'POST' }).then((x) => x.json());
+  if (r.error) { $('err').textContent = r.error; return; }
+  $('joinCard').style.display = 'none';
+  $('live').style.display = 'block';
+  $('badge').style.display = 'inline-block';
+  const es = new EventSource(`/api/room/${code}/stream`);
+  es.onmessage = (e) => render(JSON.parse(e.data));
+}
+
+function scorecard(inn, idx) {
+  const bats = inn.batters.filter((b) => b.balls > 0 || b.runs > 0 || b.out);
+  const bowls = inn.bowlers.filter((b) => b.balls > 0);
+  const oversOf = (balls) => `${Math.floor(balls / 6)}.${balls % 6}`;
+  return `
+    <h3 class="sec">Innings ${idx + 1} — ${esc(inn.battingTeam)} ${inn.runs}/${inn.wickets} (${inn.overs} ov)</h3>
+    <div class="card" style="padding:10px 14px">
+      <table>
+        <tr><th>Batter</th><th class="num">R</th><th class="num">B</th></tr>
+        ${bats.map((b) => `<tr><td>${esc(b.name)}${b.out ? ' <span class="dim">out</span>' : ''}</td><td class="num">${b.runs}</td><td class="num">${b.balls}</td></tr>`).join('')}
+      </table>
+      ${bowls.length ? `<table style="margin-top:10px">
+        <tr><th>Bowler</th><th class="num">O</th><th class="num">R</th><th class="num">W</th></tr>
+        ${bowls.map((b) => `<tr><td>${esc(b.name)}</td><td class="num">${oversOf(b.balls)}</td><td class="num">${b.runs}</td><td class="num">${b.wickets}</td></tr>`).join('')}
+      </table>` : ''}
+    </div>`;
+}
+
+function render(st) {
+  if (st.phase === 'waiting') {
+    $('vTeam').textContent = 'Match not started yet';
+    $('vScore').textContent = '—';
+    $('vOvers').textContent = 'The scorer is setting things up…';
+    return;
+  }
+  const l = st.live;
+  $('vTeam').textContent = `${l.battingTeam} batting · vs ${l.bowlingTeam}`;
+  $('vScore').textContent = `${l.runs}/${l.wickets}`;
+  $('vOvers').textContent = `${l.overs} of ${st.setup.overs} overs · innings ${st.inningsNo}/2`;
+  $('vChase').textContent = st.chase ? `Need ${st.chase.need} off ${st.chase.ballsLeft} · RRR ${st.chase.rrr}` : '';
+  $('vNow').innerHTML = [
+    l.striker ? `<span><b>${esc(l.striker.name)}*</b> ${l.striker.runs}(${l.striker.balls})</span>` : '',
+    l.nonStriker ? `<span>${esc(l.nonStriker.name)} ${l.nonStriker.runs}(${l.nonStriker.balls})</span>` : '',
+    l.bowler ? `<span>🎳 <b>${esc(l.bowler.name)}</b> ${l.bowler.wickets}/${l.bowler.runs}</span>` : '',
+  ].filter(Boolean).join('');
+  $('vOver').innerHTML = l.thisOver.map((b) => {
+    const cls = b.d === 'W' ? 'bw' : b.d === '4' ? 'b4' : b.d === '6' || b.d.startsWith('Nb+6') ? 'b6' : '';
+    return `<span class="ball-chip ${cls}${b.src === 'sensor' ? ' sensor' : ''}">${esc(b.d)}</span>`;
+  }).join('');
+
+  const done = st.phase === 'result';
+  $('vResult').style.display = done ? 'block' : 'none';
+  if (done) {
+    $('vResultText').textContent = '🏆 ' + st.result;
+    $('vMom').textContent = st.mom ? `Player of the Match: ${st.mom.name} — ${st.mom.summary}` : '';
+  }
+  $('vCards').innerHTML = st.innings.map(scorecard).join('');
+}
+
+const qp = new URLSearchParams(location.search).get('code');
+if (qp) { $('codeInput').value = qp; join(); }
+</script>
+</body>
+</html>
