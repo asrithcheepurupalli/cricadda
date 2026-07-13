@@ -563,8 +563,8 @@ function tryPair() {
 function startMatch() {
   const overs = parseInt(document.getElementById('ovs').value, 10) || 2;
   room.setup = {
-    A: { name: document.getElementById('tA').value.trim() || 'Team A', players: ['Asrith', 'Rahul', 'Vikram', 'Sandeep', 'Kiran'] },
-    B: { name: document.getElementById('tB').value.trim() || 'Team B', players: ['Partha', 'Suresh', 'Anil', 'Deepak', 'Ravi'] },
+    A: { name: document.getElementById('tA').value.trim() || 'Team A', players: ['Asrith', 'Tarun', 'Chandesh', 'Vamsi', 'Kiran'] },
+    B: { name: document.getElementById('tB').value.trim() || 'Team B', players: ['Partha', 'Rohit', 'Suresh', 'Deepak', 'Ravi'] },
     overs, firstBatting: 'A',
   };
   room.events = []; room.pendingAuto = null; room.seq += 1;

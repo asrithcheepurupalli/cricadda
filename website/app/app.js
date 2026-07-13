@@ -451,7 +451,7 @@ function screenTeams() {
     <div class="card" style="margin-top:18px">
       <div class="sec-t" style="margin-top:0">NEW SQUAD</div>
       <label>Squad name</label><input id="tName" maxlength="24" placeholder="Royal Strikers">
-      <label>Players (one per line)</label><textarea id="tPlayers" rows="5" placeholder="${esc(profile.name)}\nRahul\nVikram\nSandeep"></textarea>
+      <label>Players (one per line)</label><textarea id="tPlayers" rows="5" placeholder="${esc(profile.name)}\nTarun\nChandesh\nVamsi"></textarea>
       <button class="primary wide" style="margin-top:14px" onclick="addTeam()">SAVE SQUAD</button>
     </div>${FOOT}`);
   mountMini();
@@ -477,11 +477,11 @@ function screenSetup() {
       <label>Your team (bats first)</label>
       <select id="selA" onchange="fillTeam('A')">${teamOptions()}</select>
       <input id="nameA" placeholder="Team A name" value="Team ${esc(profile.name)}" style="margin-top:8px">
-      <textarea id="playersA" rows="4" style="margin-top:8px" placeholder="players, one per line">${esc(profile.name)}\nRahul\nVikram\nSandeep</textarea>
+      <textarea id="playersA" rows="4" style="margin-top:8px" placeholder="players, one per line">${esc(profile.name)}\nTarun\nChandesh\nVamsi</textarea>
       <label>Opponents</label>
       <select id="selB" onchange="fillTeam('B')">${teamOptions()}</select>
       <input id="nameB" placeholder="Team B name" value="Turf Titans" style="margin-top:8px">
-      <textarea id="playersB" rows="4" style="margin-top:8px" placeholder="players, one per line">Partha\nSuresh\nAnil\nDeepak</textarea>
+      <textarea id="playersB" rows="4" style="margin-top:8px" placeholder="players, one per line">Partha\nRohit\nSuresh\nDeepak</textarea>
       <label>Overs per side</label>
       <select id="overs"><option>1</option><option selected>2</option><option>4</option><option>6</option><option>8</option></select>
       <button class="primary wide" style="margin-top:16px" onclick="startMatch()">🏏 PLAY BALL</button>
@@ -500,8 +500,8 @@ function startMatch() {
   room = {
     seq: 0, events: [],
     setup: {
-      A: { name: $('nameA').value.trim() || 'Team A', players: parse('playersA', [profile.name, 'Rahul', 'Vikram', 'Sandeep']) },
-      B: { name: $('nameB').value.trim() || 'Team B', players: parse('playersB', ['Partha', 'Suresh', 'Anil', 'Deepak']) },
+      A: { name: $('nameA').value.trim() || 'Team A', players: parse('playersA', [profile.name, 'Tarun', 'Chandesh', 'Vamsi']) },
+      B: { name: $('nameB').value.trim() || 'Team B', players: parse('playersB', ['Partha', 'Rohit', 'Suresh', 'Deepak']) },
       overs: parseInt($('overs').value, 10) || 2, firstBatting: 'A',
     },
   };
