@@ -97,3 +97,7 @@ even cooler. Phase numbers refer to the [roadmap](04-roadmap.md).
 | ⭐ Weatherproof kit | Outdoor-rated screen enclosure, camera housings, surge protection | 1 |
 | ⭐ Multi-language | Screen and app in English, Hindi, Telugu, Tamil, and more | 2 |
 | ⭐ Anti-tamper scoring log | Every scoring event (who, when, manual/auto) is logged — settles every argument | 1 |
+
+---
+
+*CricAdda — a **made.** product · made. by ac*

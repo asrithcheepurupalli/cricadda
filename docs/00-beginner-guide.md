@@ -102,3 +102,7 @@ works exactly the same.)*
 The demo proves the core experience: **pair with a code → phone controls the screen →
 score live → sensors assist**. Everything else is layers on top — see the
 [feature catalog](02-features.md) and [roadmap](04-roadmap.md).
+
+---
+
+*CricAdda — a **made.** product · made. by ac*

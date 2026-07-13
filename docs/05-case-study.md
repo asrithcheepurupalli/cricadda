@@ -84,3 +84,7 @@ evening slots with league fixtures.
   leaderboard and evangelize the rest.
 - Sell the first sponsor slot before the automation phase; ad revenue funds the hardware
   upgrade.
+
+---
+
+*CricAdda — a **made.** product · made. by ac*
