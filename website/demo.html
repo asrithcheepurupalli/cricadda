@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CricAdda — Playable Demo</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { font-size: 20px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 20px; }
+  .top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .top a.back { font-family: 'VT323', monospace; font-size: 20px; color: var(--dim); text-decoration: none; }
+  .top a.back:hover { color: var(--green); }
+  .top .logo { font-family: 'Press Start 2P', monospace; font-size: 14px; }
+  .top .logo span { color: var(--green); }
+  .hinttxt { text-align: center; font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--dim); margin-bottom: 18px; line-height: 2; }
+
+  .duo { display: grid; grid-template-columns: 1fr; gap: 26px; align-items: start; }
+  @media (min-width: 980px) { .duo { grid-template-columns: 1.55fr 1fr; } }
+
+  /* ============ TURF SCREEN PANEL ============ */
+  .tv-shell { position: sticky; top: 16px; }
+  .tv-label { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--blue); margin-bottom: 10px; letter-spacing: 0.12em; }
+  .tv {
+    background: #050d1a; border: 4px solid var(--line); box-shadow: 6px 6px 0 rgba(0,0,0,0.6);
+    aspect-ratio: 16/9; position: relative; overflow: hidden; padding: 3.2%;
+    display: flex; flex-direction: column;
+  }
+  .tv::after { content:''; position:absolute; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0.2) 0 1px, transparent 1px 3px); }
+  .tv * { line-height: 1.4; }
+  .tv .bar { display: flex; justify-content: space-between; align-items: center; font-family: 'Press Start 2P', monospace; font-size: clamp(6px, 0.9vw, 10px); color: var(--dim); }
+  .tv .bar .b-live { color: #f87171; }
+  .tv-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4%; }
+  .tv-code-label { font-family: 'Press Start 2P', monospace; font-size: clamp(6px, 0.8vw, 9px); color: var(--dim); }
+  .tv-code { font-family: 'Press Start 2P', monospace; font-size: clamp(30px, 5vw, 62px); color: var(--gold); letter-spacing: 0.1em; }
+  .tv-hint { font-size: clamp(13px, 1.4vw, 17px); color: var(--dim); max-width: 80%; }
+  .tv-score-row { display: flex; align-items: baseline; gap: 3%; margin-top: 1%; }
+  .tv-team { font-family: 'Press Start 2P', monospace; font-size: clamp(9px, 1.3vw, 15px); }
+  .tv-runs { font-family: 'Press Start 2P', monospace; font-size: clamp(26px, 4vw, 48px); }
+  .tv-ov { font-size: clamp(14px, 1.6vw, 19px); color: var(--dim); }
+  .tv-chase { font-family: 'Press Start 2P', monospace; font-size: clamp(7px, 1vw, 11px); color: var(--gold); margin-top: 1%; }
+  .tv-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2.5%; flex: 1; min-height: 0; margin-top: 2.5%; }
+  .tv-panel { background: var(--panel); border: 2px solid var(--line); padding: 3% 4%; text-align: left; overflow: hidden; }
+  .tv-sec { font-family: 'Press Start 2P', monospace; font-size: clamp(5px, 0.7vw, 8px); color: var(--dim); margin-bottom: 4%; }
+  .tv-prow { display: flex; justify-content: space-between; font-size: clamp(12px, 1.5vw, 18px); padding: 1.5% 0; border-bottom: 1px solid var(--line); }
+  .tv-prow:last-child { border-bottom: none; }
+  .tv-prow .st { color: var(--green); }
+  .tv-balls { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tv-balls .ball-chip { min-width: 26px; height: 26px; font-size: 9px; border-width: 2px; }
+  .tv-bound { font-size: clamp(12px, 1.5vw, 17px); margin-top: 5%; }
+  .tv-footer { display: flex; justify-content: space-between; font-size: clamp(10px, 1.2vw, 14px); color: var(--dim); margin-top: 1.5%; }
+  /* celebration overlay inside tv */
+  .tv-flash { position: absolute; inset: 0; z-index: 6; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 3%; text-align: center; }
+  .tv-flash.show { display: flex; animation: tvpop 0.3s ease; }
+  @keyframes tvpop { from { transform: scale(0.8); opacity: 0.4; } to { transform: scale(1); opacity: 1; } }
+  .tv-flash .big { font-family: 'Press Start 2P', monospace; font-size: clamp(28px, 5.5vw, 66px); }
+  .tv-flash .sub { font-size: clamp(13px, 1.6vw, 19px); }
+  .tv-flash.f4 { background: rgba(4,47,24,0.95); } .tv-flash.f4 .big { color: var(--green); }
+  .tv-flash.f6 { background: rgba(58,42,0,0.95); } .tv-flash.f6 .big { color: var(--gold); }
+  .tv-flash.fw { background: rgba(69,10,10,0.95); } .tv-flash.fw .big { color: var(--red); }
+  .tv-flash.fm { background: rgba(12,36,60,0.96); } .tv-flash.fm .big { color: var(--blue); font-size: clamp(22px, 4vw, 48px); }
+  .tv-flash .autotag { font-family: 'Press Start 2P', monospace; font-size: clamp(6px, 0.9vw, 10px); color: var(--blue); border: 2px solid var(--blue); padding: 6px 12px; }
+  /* result inside tv */
+  .tv-result { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; text-align: center; }
+  .tv-result .r { font-family: 'Press Start 2P', monospace; font-size: clamp(11px, 1.7vw, 20px); color: var(--gold); }
+  .tv-result .mom { font-family: 'Press Start 2P', monospace; font-size: clamp(7px, 1vw, 12px); color: var(--blue); }
+  .tv-sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5%; width: 96%; }
+  .tv-sc { background: var(--panel); border: 2px solid var(--line); padding: 2.5% 3.5%; text-align: left; }
+  .tv-sc h5 { font-family: 'Press Start 2P', monospace; font-size: clamp(5px, 0.75vw, 8px); margin-bottom: 3%; line-height: 1.8; }
+  .tv-sc table { width: 100%; font-size: clamp(10px, 1.25vw, 15px); border-collapse: collapse; }
+  .tv-sc td { padding: 1% 2%; border-bottom: 1px solid var(--line); }
+  .tv-sc td.n { text-align: right; }
+  .sensor-row { display: flex; gap: 12px; margin-top: 16px; }
+  .sensor-row button { flex: 1; font-size: 9px; line-height: 1.8; padding: 14px 8px; }
+  .sensor-note { font-size: 17px; color: var(--dim); margin-top: 10px; text-align: center; }
+
+  /* ============ PHONE PANEL ============ */
+  .ph-label { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--red); margin-bottom: 10px; letter-spacing: 0.12em; }
+  .phone {
+    background: #050d1a; border: 4px solid var(--line); box-shadow: 6px 6px 0 rgba(0,0,0,0.6);
+    border-radius: 0; padding: 18px 14px 22px; max-width: 400px;
+  }
+  .ph-notch { width: 90px; height: 8px; background: var(--line); margin: 0 auto 14px; }
+  .ph-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .ph-head .t { font-family: 'Press Start 2P', monospace; font-size: 11px; } .ph-head .t span { color: var(--green); }
+  .ph-score { text-align: center; margin: 10px 0; }
+  .ph-score .r { font-family: 'Press Start 2P', monospace; font-size: 24px; }
+  .ph-score .t { font-size: 17px; color: var(--dim); }
+  .ph-score .chase { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--gold); margin-top: 6px; line-height: 1.8; }
+  .ph-bats { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px; font-size: 16px; color: var(--dim); margin: 8px 2px; }
+  .ph-bats b { color: var(--text); }
+  .pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+  .pad button { font-size: 14px; padding: 14px 0; }
+  .pad .b4 { background: var(--green); border-color: var(--green); color: #052b12; }
+  .pad .b6 { background: var(--gold); border-color: var(--gold); color: #3a2a00; }
+  .pad .bw { background: var(--red); border-color: var(--red); color: #fff; grid-column: span 2; font-size: 11px; }
+  .pad .sm { font-size: 8px; }
+  .auto-banner { border: 3px solid var(--blue); background: rgba(56,189,248,0.08); padding: 12px; margin: 12px 0; display: none; }
+  .auto-banner.show { display: block; animation: slide 0.25s ease; }
+  @keyframes slide { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .auto-banner .tag { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--blue); line-height: 1.8; }
+  .auto-banner .what { font-size: 20px; margin: 6px 0 10px; }
+  .auto-banner .row { display: flex; gap: 8px; }
+  .auto-banner button { flex: 1; font-size: 9px; padding: 12px 6px; }
+  .bowler-pick button { display: block; width: 100%; margin-bottom: 8px; text-align: left; font-size: 10px; }
+  .ph-result { text-align: center; padding: 14px 6px; }
+  .ph-result .r { font-family: 'Press Start 2P', monospace; font-size: 12px; color: var(--gold); line-height: 1.9; }
+  .ph-result .mom { font-size: 17px; color: var(--blue); margin: 8px 0 14px; }
+  .ph-step h4 { font-family: 'Press Start 2P', monospace; font-size: 11px; margin-bottom: 10px; line-height: 1.8; }
+  .ph-step p { font-size: 18px; color: var(--dim); }
+  .code-in { font-family: 'Press Start 2P', monospace !important; font-size: 22px !important; text-align: center; letter-spacing: 0.25em; }
+  .mini-balls { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; min-height: 30px; }
+  .mini-balls .ball-chip { min-width: 30px; height: 30px; font-size: 10px; }
+  .field-row { display: flex; gap: 8px; }
+  .field-row > * { flex: 1; }
+  .ph small.err { color: var(--red); font-size: 16px; display: block; margin-top: 8px; }
+</style>
+</head>
+<body class="crt">
+<div class="wrap">
+  <div class="top">
+    <div class="logo">CRIC<span>ADDA</span> <span style="color:var(--dim);font-size:9px">DEMO</span></div>
+    <a class="back" href="index.html">◄ BACK TO SITE</a>
+  </div>
+  <div class="hinttxt blink">▼ THIS IS THE REAL FLOW — THE SCREEN IS THE TURF'S LED BOARD, THE PHONE IS YOURS ▼</div>
+
+  <div class="duo">
+    <!-- ============ TURF SCREEN ============ -->
+    <div class="tv-shell">
+      <div class="tv-label">🖥 THE TURF'S BIG SCREEN (BEHIND THE BOWLER)</div>
+      <div class="tv" id="tv"></div>
+      <div class="sensor-row">
+        <button onclick="fireAuto('four')">🧱 SIMULATE BOUNDARY SENSOR → 4</button>
+        <button class="gold" onclick="fireAuto('six')">📷 SIMULATE AI CAMERA → 6</button>
+      </div>
+      <div class="sensor-note">⚡ In a real install these fire from actual hardware on the boundary — here, you press the buttons.</div>
+    </div>
+
+    <!-- ============ PHONE ============ -->
+    <div>
+      <div class="ph-label">📱 YOUR PHONE (THE REMOTE)</div>
+      <div class="phone ph" id="phone"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   CricAdda in-browser demo — the same event-sourced engine as the
+   production prototype, running fully client-side. Every ball is an
+   event; the scoreboard is recomputed by replaying the log.
+   ===================================================================== */
+const CODE = String(Math.floor(1000 + Math.random() * 9000));
+const room = { setup: null, events: [], pendingAuto: null, seq: 0 };
+let paired = false;
+let lastFxSeq = 0;
+
+// ---------------- engine (ported from server.js) ----------------
+function newInnings(batKey, bowlKey, setup, target) {
+  return {
+    batKey, bowlKey, target,
+    runs: 0, wickets: 0, balls: 0, fours: 0, sixes: 0,
+    batters: setup[batKey].players.map((name) => ({ name, runs: 0, balls: 0, out: false })),
+    bowlers: [], striker: 0, nonStriker: 1, nextIn: 2,
+    thisOver: [], currentBowler: null, done: false, endReason: null,
+  };
+}
+function bowlerOf(inn) {
+  const name = inn.currentBowler || 'Bowler';
+  let b = inn.bowlers.find((x) => x.name === name);
+  if (!b) { b = { name, balls: 0, runs: 0, wickets: 0 }; inn.bowlers.push(b); }
+  return b;
+}
+function checkDone(inn, setup) {
+  if (inn.wickets >= inn.batters.length - 1) { inn.done = true; inn.endReason = 'all out'; }
+  else if (inn.balls >= setup.overs * 6) { inn.done = true; inn.endReason = 'overs completed'; }
+  else if (inn.target && inn.runs >= inn.target) { inn.done = true; inn.endReason = 'target chased'; }
+}
+function applyBall(inn, ev, setup, fx) {
+  const striker = inn.batters[inn.striker];
+  const bw = bowlerOf(inn);
+  let display, rotate = false;
+  if (ev.extra === 'wd') { inn.runs += 1; bw.runs += 1; display = 'Wd'; }
+  else if (ev.extra === 'nb') {
+    inn.runs += 1 + ev.runs; bw.runs += 1 + ev.runs; striker.runs += ev.runs;
+    display = ev.runs ? `Nb+${ev.runs}` : 'Nb'; rotate = ev.runs % 2 === 1;
+    if (ev.runs === 4) { inn.fours++; fx.kind = 'four'; }
+    if (ev.runs === 6) { inn.sixes++; fx.kind = 'six'; }
+  } else {
+    inn.balls += 1; bw.balls += 1; striker.balls += 1;
+    if (ev.wicket) {
+      inn.wickets += 1; bw.wickets += 1; striker.out = true; display = 'W';
+      fx.kind = 'wicket'; fx.batterOut = `${striker.name} ${striker.runs} (${striker.balls})`;
+      if (inn.nextIn < inn.batters.length) { inn.striker = inn.nextIn; inn.nextIn += 1; }
+    } else {
+      const before = striker.runs;
+      striker.runs += ev.runs; inn.runs += ev.runs; bw.runs += ev.runs;
+      display = String(ev.runs); rotate = ev.runs % 2 === 1;
+      if (ev.runs === 4) { inn.fours++; fx.kind = 'four'; }
+      else if (ev.runs === 6) { inn.sixes++; fx.kind = 'six'; }
+      else fx.kind = ev.runs > 0 ? 'run' : 'dot';
+      if (before < 50 && striker.runs >= 50) fx.milestone = { player: striker.name, mark: 50 };
+    }
+    fx.batter = striker.name;
+  }
+  inn.thisOver.push({ d: display, src: ev.source || 'manual' });
+  if (rotate) [inn.striker, inn.nonStriker] = [inn.nonStriker, inn.striker];
+  checkDone(inn, setup);
+  if (!inn.done && inn.balls > 0 && inn.balls % 6 === 0 && ev.extra !== 'wd' && ev.extra !== 'nb') {
+    [inn.striker, inn.nonStriker] = [inn.nonStriker, inn.striker];
+    inn.currentBowler = null; inn.thisOver = [];
+  }
+}
+function computeState() {
+  if (!room.setup) return { phase: paired ? 'setup' : 'waiting', seq: room.seq };
+  const setup = room.setup;
+  const firstBat = setup.firstBatting, secondBat = firstBat === 'A' ? 'B' : 'A';
+  const innings = [newInnings(firstBat, secondBat, setup, null)];
+  let lastFx = null;
+  for (const ev of room.events) {
+    let inn = innings[innings.length - 1];
+    if (inn.done && innings.length === 1) {
+      innings.push(newInnings(secondBat, firstBat, setup, innings[0].runs + 1));
+      inn = innings[1];
+    }
+    if (ev.type === 'setBowler') { if (!inn.done) inn.currentBowler = ev.name; }
+    else if (ev.type === 'ball') {
+      if (inn.done) continue;
+      const fx = { seq: ev.seq, source: ev.source || 'manual' };
+      applyBall(inn, ev, setup, fx);
+      lastFx = fx;
+    }
+  }
+  const inn = innings[innings.length - 1];
+  let phase = 'live', result = null, mom = null;
+  if (innings.length === 2 && inn.done) {
+    phase = 'result';
+    const first = innings[0], chase = inn;
+    const tn = (k) => setup[k].name;
+    if (chase.runs >= chase.target) {
+      const w = chase.batters.length - 1 - chase.wickets;
+      result = `${tn(chase.batKey)} won by ${w} wicket${w === 1 ? '' : 's'}`;
+    } else if (chase.runs === chase.target - 1) result = 'Match tied!';
+    else result = `${tn(first.batKey)} won by ${chase.target - 1 - chase.runs} runs`;
+    const pts = new Map();
+    const add = (n, p, line) => { const e = pts.get(n) || { p: 0, l: [] }; e.p += p; if (line) e.l.push(line); pts.set(n, e); };
+    for (const i of innings) {
+      for (const b of i.batters) if (b.balls > 0 || b.runs > 0) add(b.name, b.runs, `${b.runs} (${b.balls})`);
+      for (const b of i.bowlers) if (b.balls > 0) add(b.name, b.wickets * 25, `${b.wickets}/${b.runs}`);
+    }
+    let best = null;
+    for (const [n, e] of pts) if (!best || e.p > best.p) best = { name: n, p: e.p, summary: e.l.join(' & ') };
+    if (best) mom = best;
+  } else if (innings.length === 1 && inn.done) phase = 'innings_break';
+
+  const ov = (b) => `${Math.floor(b / 6)}.${b % 6}`;
+  const iv = (i) => ({
+    battingTeam: setup[i.batKey].name, bowlingTeam: setup[i.bowlKey].name,
+    runs: i.runs, wickets: i.wickets, overs: ov(i.balls), fours: i.fours, sixes: i.sixes,
+    striker: i.batters[i.striker] && !i.batters[i.striker].out ? i.batters[i.striker] : null,
+    nonStriker: i.batters[i.nonStriker] && !i.batters[i.nonStriker].out ? i.batters[i.nonStriker] : null,
+    bowler: i.currentBowler ? { ...bowlerOf(i), overs: ov(bowlerOf(i).balls) } : null,
+    thisOver: i.thisOver, target: i.target, needsBowler: !i.done && i.currentBowler === null,
+    batters: i.batters, bowlers: i.bowlers, endReason: i.endReason,
+  });
+  const view = {
+    phase, seq: room.seq, mom, result,
+    setup: { teamA: setup.A.name, teamB: setup.B.name, overs: setup.overs },
+    innings: innings.map(iv), inningsNo: innings.length, live: iv(inn),
+    pendingAuto: room.pendingAuto, lastFx,
+    bowlingTeamPlayers: setup[inn.bowlKey].players,
+  };
+  if (phase === 'live' && innings.length === 2) {
+    const need = inn.target - inn.runs, bl = setup.overs * 6 - inn.balls;
+    view.chase = { need, ballsLeft: bl, rrr: bl > 0 ? (need / (bl / 6)).toFixed(2) : '—' };
+  }
+  return view;
+}
+
+// ---------------- dispatch ----------------
+function dispatch(ev) {
+  room.seq += 1;
+  if (ev.type === 'ball') { room.events.push({ ...ev, seq: room.seq }); room.pendingAuto = null; }
+  else if (ev.type === 'setBowler') room.events.push({ ...ev, seq: room.seq });
+  else if (ev.type === 'undo') {
+    for (let i = room.events.length - 1; i >= 0; i--) if (room.events[i].type === 'ball') { room.events.splice(i, 1); break; }
+  }
+  else if (ev.type === 'auto') room.pendingAuto = { kind: ev.kind, runs: ev.kind === 'six' ? 6 : 4, device: ev.kind === 'six' ? 'Overhead camera' : 'Boundary sensor #2' };
+  else if (ev.type === 'dismissAuto') room.pendingAuto = null;
+  else if (ev.type === 'rematch') { room.events = []; room.pendingAuto = null; }
+  render();
+}
+
+// ---------------- sound ----------------
+let ac = null;
+function tone(f, d, dl = 0, t = 'square', v = 0.1) {
+  try {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = t; o.frequency.value = f;
+    g.gain.setValueAtTime(v, ac.currentTime + dl);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dl + d);
+    o.connect(g); g.connect(ac.destination);
+    o.start(ac.currentTime + dl); o.stop(ac.currentTime + dl + d);
+  } catch (e) {}
+}
+const sounds = {
+  four: () => { tone(523, 0.15); tone(659, 0.15, 0.12); tone(784, 0.3, 0.24); },
+  six: () => { tone(523, 0.12); tone(659, 0.12, 0.1); tone(784, 0.12, 0.2); tone(1047, 0.5, 0.3); },
+  wicket: () => { tone(311, 0.2, 0, 'sawtooth'); tone(233, 0.2, 0.18, 'sawtooth'); tone(155, 0.5, 0.36, 'sawtooth'); },
+  milestone: () => { for (let i = 0; i < 4; i++) tone(784 + i * 100, 0.15, i * 0.1, 'triangle', 0.13); },
+};
+
+// ---------------- rendering ----------------
+const esc = (s) => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+const tv = document.getElementById('tv');
+const phone = document.getElementById('phone');
+let flashTimer = null;
+
+function chipHtml(b, cls2 = '') {
+  const cls = b.d === 'W' ? 'bw' : b.d === '4' ? 'b4' : b.d === '6' || b.d.startsWith('Nb+6') ? 'b6' : '';
+  return `<span class="ball-chip ${cls}${b.src === 'sensor' ? ' sensor' : ''} ${cls2}">${esc(b.d)}</span>`;
+}
+
+function tvFlash(cls, big, sub, autotag) {
+  const el = document.createElement('div');
+  el.className = 'tv-flash show ' + cls;
+  el.innerHTML = `<div class="big">${esc(big)}</div><div class="sub">${esc(sub || '')}</div>${autotag ? `<div class="autotag">⚡ AUTO-DETECTED BY ${esc(autotag)}</div>` : ''}`;
+  const old = tv.querySelector('.tv-flash'); if (old) old.remove();
+  tv.appendChild(el);
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.remove(), 2200);
+}
+
+function renderTV(st) {
+  const bar = `<div class="bar"><span>CRIC<span style="color:var(--green)">ADDA</span></span>${st.phase === 'live' ? '<span class="b-live">● LIVE</span>' : ''}<span>CODE ${CODE}</span></div>`;
+  if (st.phase === 'waiting' || st.phase === 'setup') {
+    tv.innerHTML = bar + `
+      <div class="tv-center">
+        <div class="tv-code-label">PAIRING CODE — ENTER THIS ON THE PHONE →</div>
+        <div class="tv-code">${CODE}</div>
+        <div class="tv-hint">${st.phase === 'waiting' ? 'Waiting for a phone to pair. On a real turf this screen stands behind the bowler, facing the batsman.' : 'Phone paired! Setting up the match…'}</div>
+      </div>`;
+    return;
+  }
+  if (st.phase === 'innings_break' || st.phase === 'result') {
+    const head = st.phase === 'result'
+      ? `<div class="r">🏆 ${esc(st.result)}</div>${st.mom ? `<div class="mom">⭐ PLAYER OF THE MATCH: ${esc(st.mom.name)} — ${esc(st.mom.summary)}</div>` : ''}`
+      : `<div class="r">INNINGS BREAK — ${esc(st.innings[0].bowlingTeam)} NEED ${st.innings[0].runs + 1}</div><div class="mom" style="color:var(--dim)">waiting for the scorer to pick the opening bowler…</div>`;
+    const cards = st.innings.map((i) => {
+      const bats = i.batters.filter((b) => b.balls > 0 || b.runs > 0 || b.out);
+      const bowls = i.bowlers.filter((b) => b.balls > 0);
+      return `<div class="tv-sc"><h5>${esc(i.battingTeam)} — ${i.runs}/${i.wickets} (${i.overs})</h5>
+        <table>${bats.map((b) => `<tr><td>${esc(b.name)}${b.out ? ' †' : ''}</td><td class="n">${b.runs} (${b.balls})</td></tr>`).join('')}
+        ${bowls.map((b) => `<tr><td style="color:var(--dim)">🎳 ${esc(b.name)}</td><td class="n" style="color:var(--dim)">${b.wickets}/${b.runs}</td></tr>`).join('')}</table></div>`;
+    }).join('');
+    tv.innerHTML = bar + `<div class="tv-result">${head}<div class="tv-sc-grid">${cards}</div></div>`;
+    return;
+  }
+  const l = st.live;
+  const chase = st.chase
+    ? `<div class="tv-chase">TARGET ${l.target} · NEED ${st.chase.need} OFF ${st.chase.ballsLeft} · RRR ${st.chase.rrr}</div>`
+    : `<div class="tv-chase" style="color:var(--dim)">INNINGS ${st.inningsNo} OF 2 · ${st.setup.overs} OVERS/SIDE</div>`;
+  tv.innerHTML = bar + `
+    <div class="tv-score-row"><span class="tv-team">${esc(l.battingTeam.toUpperCase())}</span>
+      <span class="tv-runs">${l.runs}/${l.wickets}</span><span class="tv-ov">(${l.overs} ov)</span></div>
+    ${chase}
+    <div class="tv-grid">
+      <div class="tv-panel">
+        <div class="tv-sec">BATTING</div>
+        ${l.striker ? `<div class="tv-prow"><span>${esc(l.striker.name)} <span class="st">*</span></span><span>${l.striker.runs} (${l.striker.balls})</span></div>` : ''}
+        ${l.nonStriker ? `<div class="tv-prow"><span>${esc(l.nonStriker.name)}</span><span>${l.nonStriker.runs} (${l.nonStriker.balls})</span></div>` : ''}
+        <div class="tv-sec" style="margin-top:5%">BOWLING</div>
+        ${l.bowler ? `<div class="tv-prow"><span>${esc(l.bowler.name)}</span><span>${l.bowler.wickets}/${l.bowler.runs} (${l.bowler.overs})</span></div>` : `<div class="tv-prow" style="color:var(--dim)">selecting bowler…</div>`}
+      </div>
+      <div class="tv-panel">
+        <div class="tv-sec">THIS OVER</div>
+        <div class="tv-balls">${l.thisOver.map((b) => chipHtml(b)).join('') || '<span style="color:var(--dim);font-size:13px">new over</span>'}</div>
+        <div class="tv-bound"><span style="color:var(--green)">${l.fours} × FOUR</span> · <span style="color:var(--gold)">${l.sixes} × SIX</span></div>
+      </div>
+    </div>
+    <div class="tv-footer"><span>${esc(st.setup.teamA)} vs ${esc(st.setup.teamB)}</span><span>every ball logged · zero disputes</span></div>`;
+}
+
+function handleFx(st) {
+  const fx = st.lastFx;
+  if (!fx || fx.seq <= lastFxSeq) return;
+  lastFxSeq = fx.seq;
+  const tag = fx.source === 'sensor' ? (fx.kind === 'six' ? 'AI CAMERA' : 'BOUNDARY SENSOR') : null;
+  if (fx.milestone) { tvFlash('fm', fx.milestone.mark + '!', `${fx.milestone.player} brings up a superb fifty!`); sounds.milestone(); }
+  else if (fx.kind === 'four') { tvFlash('f4', 'FOUR!', `${fx.batter} finds the boundary`, tag); sounds.four(); }
+  else if (fx.kind === 'six') { tvFlash('f6', 'SIX!', `${fx.batter} sends it over the net!`, tag); sounds.six(); }
+  else if (fx.kind === 'wicket') { tvFlash('fw', 'OUT!', fx.batterOut || ''); sounds.wicket(); }
+}
+
+// ---------------- phone rendering ----------------
+function renderPhone(st) {
+  const head = `<div class="ph-notch"></div><div class="ph-head"><span class="t">CRIC<span>ADDA</span></span>
+    <span class="badge ${paired ? 'auto' : 'live'}">${paired ? '● PAIRED ' + CODE : 'NOT PAIRED'}</span></div>`;
+
+  if (!paired) {
+    phone.innerHTML = head + `<div class="ph-step">
+      <h4>PAIR WITH THE TURF SCREEN</h4>
+      <p>Type the 4-digit code shown on the big screen ← and your phone becomes the remote.</p>
+      <label>Pairing code</label>
+      <input class="code-in" id="codeIn" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off">
+      <button class="primary" style="width:100%;margin-top:14px" onclick="tryPair()">CONNECT ▶</button>
+      <small class="err" id="pairErr"></small>
+    </div>`;
+    return;
+  }
+  if (st.phase === 'setup') {
+    phone.innerHTML = head + `<div class="ph-step">
+      <h4>MATCH SETUP</h4>
+      <div class="field-row">
+        <div><label>Team A</label><input id="tA" value="Royal Strikers"></div>
+        <div><label>Team B</label><input id="tB" value="Turf Titans"></div>
+      </div>
+      <label>Overs per side</label>
+      <select id="ovs"><option>1</option><option selected>2</option><option>4</option><option>6</option></select>
+      <p style="margin-top:10px">Players are pre-filled for the demo. In the real app your saved squads appear here.</p>
+      <button class="primary" style="width:100%;margin-top:14px" onclick="startMatch()">START MATCH ▶</button>
+    </div>`;
+    return;
+  }
+
+  const l = st.live;
+  let body = `<div class="ph-score">
+      <div class="t">${esc(l.battingTeam)} batting · inn ${st.inningsNo}/2</div>
+      <div class="r">${l.runs}/${l.wickets} <span style="font-size:13px;color:var(--dim)">(${l.overs})</span></div>
+      ${st.chase ? `<div class="chase">NEED ${st.chase.need} OFF ${st.chase.ballsLeft}</div>` : ''}
+    </div>
+    <div class="ph-bats">
+      ${l.striker ? `<span><b>${esc(l.striker.name)}*</b> ${l.striker.runs}(${l.striker.balls})</span>` : ''}
+      ${l.nonStriker ? `<span>${esc(l.nonStriker.name)} ${l.nonStriker.runs}(${l.nonStriker.balls})</span>` : ''}
+      ${l.bowler ? `<span>🎳 ${esc(l.bowler.name)} ${l.bowler.wickets}/${l.bowler.runs}</span>` : ''}
+    </div>
+    <div class="mini-balls">${l.thisOver.map((b) => chipHtml(b)).join('')}</div>`;
+
+  const p = st.pendingAuto;
+  if (p && st.phase === 'live') {
+    body += `<div class="auto-banner show">
+      <div class="tag">⚡ AUTO-DETECTED · ${esc(p.device.toUpperCase())}</div>
+      <div class="what">${p.kind === 'six' ? 'SIX — ball cleared the net line' : 'FOUR — ball hit the boundary'}</div>
+      <div class="row"><button class="primary" onclick="confirmAuto(true)">✓ CONFIRM</button>
+      <button onclick="confirmAuto(false)">✕ IGNORE</button></div>
+    </div>`;
+  }
+
+  if (st.phase === 'live' && l.needsBowler) {
+    body += `<div class="ph-step" style="margin-top:12px"><h4>SELECT BOWLER</h4><div class="bowler-pick">
+      ${st.bowlingTeamPlayers.map((n) => `<button onclick="dispatch({type:'setBowler',name:'${esc(n).replace(/'/g, "\\'")}'})">🎳 ${esc(n)}</button>`).join('')}
+    </div></div>`;
+  } else if (st.phase === 'live') {
+    body += `<div class="pad">
+      <button onclick="ball(0)">0</button><button onclick="ball(1)">1</button>
+      <button onclick="ball(2)">2</button><button onclick="ball(3)">3</button>
+      <button class="b4" onclick="ball(4)">4</button><button class="b6" onclick="ball(6)">6</button>
+      <button class="sm" onclick="dispatch({type:'ball',runs:0,extra:'wd'})">WIDE</button>
+      <button class="sm" onclick="dispatch({type:'ball',runs:0,extra:'nb'})">NO BALL</button>
+      <button class="bw" onclick="dispatch({type:'ball',runs:0,wicket:true})">WICKET</button>
+      <button class="sm" onclick="ball(5)">5</button>
+      <button class="sm" onclick="dispatch({type:'undo'})">↩ UNDO</button>
+    </div>`;
+  }
+
+  if (st.phase === 'innings_break') {
+    const i1 = st.innings[0];
+    body += `<div class="ph-step" style="margin-top:12px">
+      <h4>INNINGS OVER — ${esc(i1.bowlingTeam.toUpperCase())} NEED ${i1.runs + 1}</h4>
+      <div class="bowler-pick">
+      ${st.bowlingTeamPlayers.map((n) => `<button onclick="dispatch({type:'setBowler',name:'${esc(n).replace(/'/g, "\\'")}'})">🎳 ${esc(n)}</button>`).join('')}
+      </div></div>`;
+  }
+  if (st.phase === 'result') {
+    body += `<div class="ph-result">
+      <div class="r">🏆 ${esc(st.result)}</div>
+      ${st.mom ? `<div class="mom">⭐ Player of the Match: ${esc(st.mom.name)} — ${esc(st.mom.summary)}</div>` : ''}
+      <button class="gold" style="width:100%" onclick="dispatch({type:'rematch'})">🔁 REMATCH</button>
+    </div>`;
+  }
+  phone.innerHTML = head + body;
+}
+
+function render() {
+  const st = computeState();
+  renderTV(st);
+  renderPhone(st);
+  handleFx(st);
+}
+
+// ---------------- actions ----------------
+function tryPair() {
+  const v = document.getElementById('codeIn').value.trim();
+  if (v !== CODE) { document.getElementById('pairErr').textContent = `Wrong code — the screen says ${CODE}.`; return; }
+  paired = true;
+  render();
+}
+function startMatch() {
+  const overs = parseInt(document.getElementById('ovs').value, 10) || 2;
+  room.setup = {
+    A: { name: document.getElementById('tA').value.trim() || 'Team A', players: ['Asrith', 'Rahul', 'Vikram', 'Sandeep', 'Kiran'] },
+    B: { name: document.getElementById('tB').value.trim() || 'Team B', players: ['Partha', 'Suresh', 'Anil', 'Deepak', 'Ravi'] },
+    overs, firstBatting: 'A',
+  };
+  room.events = []; room.pendingAuto = null; room.seq += 1;
+  render();
+}
+function ball(runs) { dispatch({ type: 'ball', runs }); }
+function fireAuto(kind) {
+  const st = computeState();
+  if (st.phase !== 'live') return;
+  dispatch({ type: 'auto', kind });
+}
+function confirmAuto(ok) {
+  const p = room.pendingAuto;
+  if (!p) return;
+  if (ok) dispatch({ type: 'ball', runs: p.runs, source: 'sensor' });
+  else dispatch({ type: 'dismissAuto' });
+}
+
+render();
+</script>
+</body>
+</html>
