@@ -131,3 +131,7 @@ derive from the same stream, and every correction is traceable.
    stats all render from the same ball-event log.
 5. **Modular hardware tiers.** Screen-only kit → + boundary sensors → + cameras →
    + smart stumps. Each tier is a sellable package (see the client proposal).
+
+---
+
+*CricAdda — a **made.** product · made. by ac*

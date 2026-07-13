@@ -84,3 +84,7 @@ taps per match reduced by ~70%.
 | Turf internet unreliability | Offline-first hub architecture (Phase 1, not an afterthought) |
 | Scorer adoption friction | Manual mode as fast as any scoring app; pairing in <30 seconds; zero-training UI |
 | Hardware cost for small turfs | Tiered kits — screen-only entry tier; sensors/cameras as upgrades |
+
+---
+
+*CricAdda — a **made.** product · made. by ac*

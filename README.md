@@ -19,8 +19,8 @@ node prototype/server.js
 Open `http://localhost:3000` → a retro-arcade landing page (pixel fonts, CRT scanlines,
 self-playing "attract mode" scoreboard) that walks a client through everything top to
 bottom: the story, the player journey level-by-level, how the system connects, real
-screenshots, the live demo launchers, features, the three packages, and the full
-business process from first call to launch.
+screenshots, the live demo launchers, features, and the full process from first call
+to a fully-equipped stadium turf.
 
 Demo pages (linked from the site):
 1. **Big screen** (laptop/TV): open `http://localhost:3000/screen.html` → shows a 4-digit pairing code
@@ -42,6 +42,24 @@ to a result with scorecards and Player of the Match, plus undo, rematch, and a n
 spectator view.** The engine is event-sourced (every ball is a logged event) — the same
 architecture the production system uses.
 
+## 🕹️ The App — Complete Model (web-first)
+
+[`website/app/`](website/app/) is the **complete product model as a web app** — the app
+we'll wrap for the Play Store later, built web-first. Live at `/app/` on the hosted site:
+
+- **Onboarding like a game**: made. splash → phone number → OTP (arriving as an on-screen
+  SMS) → arcade **character-select with retro pixel avatars** (procedurally generated,
+  infinite variations) → "Ready Player One" card
+- **Player card**: avatar, arcade title ("Six Machine", "Gully Gladiator"…), XP bar,
+  levels, career numbers
+- **Real matches** on the same event-sourced engine — every run and wicket credits your
+  lifetime career, with full-screen FOUR!/SIX!/OUT! celebrations and sounds
+- **Career & badges**: batting/bowling stats, match history, unlockable badges
+  (BIG HITTER, 50 CLUB, WICKET WOLF…), Player-of-the-Match count
+- **Squads**: build teams once, reuse forever
+- Everything persists in the browser (localStorage) — no backend needed for the model;
+  the cloud layer from [docs/03](docs/03-system-architecture.md) slots in behind it later
+
 ## 🌐 Hosted Client Website (Vercel-ready)
 
 [`website/`](website/) is a pure-static copy of the pitch site with a **playable
@@ -60,6 +78,7 @@ Root Directory to `website`. Full instructions in [`website/README.md`](website/
 | [04 — Roadmap & Phases](docs/04-roadmap.md) | MVP → full automation, phased delivery plan |
 | [05 — Case Study](docs/05-case-study.md) | Problem, solution, pilot scenario, expected outcomes |
 | [06 — Client Proposal](docs/06-client-proposal.md) | Shareable pitch document for clients / turf owners |
+| [07 — Hardware & Sync](docs/07-hardware-and-sync.md) | **Making it real**: the screen, ball protection, hub, sensors, cameras, networking, sync, costs, install checklist |
 
 ## The Core Idea in 30 Seconds
 
@@ -73,3 +92,7 @@ Root Directory to `website`. Full instructions in [`website/README.md`](website/
    sensors and AI cameras auto-detect 4s, 6s and runs. Manual override always wins.
 5. **Match experience** — replays, celebration animations, player stats, leaderboards,
    tournaments, and auto-generated highlights shared after the match.
+
+---
+
+*CricAdda — a **made.** product · made. by ac*

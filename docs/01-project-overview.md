@@ -108,3 +108,7 @@ Automation hardware:
   broadcast infrastructure five years ago now runs on a device costing a few thousand rupees.
 - No incumbent owns this space: scoring apps exist (paper replacements) and stadium tech
   exists (unaffordable) — nothing in between. CricAdda is the in-between.
+
+---
+
+*CricAdda — a **made.** product · made. by ac*

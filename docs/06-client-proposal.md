@@ -119,3 +119,7 @@ Typical time from survey to launch: **3–4 weeks** (Starter/Pro), 6–8 weeks (
 ---
 
 *CricAdda — Every turf a stadium. Every player a star.*
+
+---
+
+*CricAdda — a **made.** product · made. by ac*
