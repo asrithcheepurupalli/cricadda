@@ -1,0 +1,118 @@
+/* CricAdda prototype — shared styles (retro arcade edition) */
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('fonts/press-start-2p.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'VT323';
+  src: url('fonts/vt323.woff2') format('woff2');
+  font-display: swap;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0a1628;
+  --panel: #12233d;
+  --panel2: #1a3050;
+  --line: #24466e;
+  --text: #eaf2fc;
+  --dim: #8fa9c9;
+  --green: #22c55e;
+  --gold: #fbbf24;
+  --red: #ef4444;
+  --blue: #38bdf8;
+  --radius: 14px;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'VT323', 'Courier New', monospace;
+  font-size: 20px;
+  -webkit-font-smoothing: none;
+}
+h1, h2, h3 { font-family: 'Press Start 2P', monospace; font-weight: 400; letter-spacing: 0; line-height: 1.5; }
+.px { font-family: 'Press Start 2P', monospace; font-weight: 400; }
+.crt { position: relative; }
+.crt::after {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 999;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 3px);
+}
+@keyframes blink { 50% { opacity: 0; } }
+.blink { animation: blink 1.1s steps(1) infinite; }
+.pixel-border {
+  border: 3px solid var(--line);
+  border-radius: 0;
+  box-shadow: 0 0 0 3px var(--bg), 4px 4px 0 3px rgba(0,0,0,0.55);
+}
+.dim { color: var(--dim); }
+.gold { color: var(--gold); }
+.green { color: var(--green); }
+.card {
+  background: var(--panel);
+  border: 3px solid var(--line);
+  border-radius: 0;
+  padding: 20px;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
+}
+button, .btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  border: 3px solid var(--line);
+  background: var(--panel2);
+  color: var(--text);
+  border-radius: 0;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.15s ease;
+  touch-action: manipulation;
+  user-select: none;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.55);
+  image-rendering: pixelated;
+}
+button:active { transform: translate(3px, 3px); box-shadow: none; }
+button.primary { background: var(--green); border-color: var(--green); color: #052b12; }
+button.danger { background: var(--red); border-color: var(--red); color: #fff; }
+button.gold { background: var(--gold); border-color: var(--gold); color: #3a2a00; }
+input, select, textarea {
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  width: 100%;
+  background: var(--bg);
+  border: 3px solid var(--line);
+  color: var(--text);
+  border-radius: 0;
+  padding: 12px 14px;
+}
+input:focus, textarea:focus { outline: 3px solid var(--blue); border-color: transparent; }
+label { display: block; font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--dim); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+.row { display: flex; gap: 12px; }
+.row > * { flex: 1; }
+.badge {
+  display: inline-block; font-family: 'Press Start 2P', monospace; font-size: 9px; letter-spacing: 0.05em;
+  padding: 6px 10px; border-radius: 0; text-transform: uppercase;
+}
+.badge.live { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+.badge.auto { background: rgba(56,189,248,0.15); color: var(--blue); border: 1px solid rgba(56,189,248,0.4); }
+
+/* ball chips (this over) */
+.balls { display: flex; gap: 8px; flex-wrap: wrap; }
+.ball-chip {
+  min-width: 38px; height: 38px; padding: 0 6px; border-radius: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Press Start 2P', monospace; font-size: 12px;
+  background: var(--panel2); border: 2px solid var(--line);
+}
+.ball-chip.b4 { background: var(--green); color: #052b12; border-color: var(--green); }
+.ball-chip.b6 { background: var(--gold); color: #3a2a00; border-color: var(--gold); }
+.ball-chip.bw { background: var(--red); color: #fff; border-color: var(--red); }
+.ball-chip.sensor { box-shadow: 0 0 0 3px var(--blue); }
+
+/* toast */
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+  background: var(--panel2); border: 3px solid var(--line); border-radius: 0;
+  padding: 12px 20px; font-family: 'VT323', monospace; font-size: 20px; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s; z-index: 100;
+}
+.toast.show { opacity: 1; }

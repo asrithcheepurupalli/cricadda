@@ -42,6 +42,13 @@ to a result with scorecards and Player of the Match, plus undo, rematch, and a n
 spectator view.** The engine is event-sourced (every ball is a logged event) — the same
 architecture the production system uses.
 
+## 🌐 Hosted Client Website (Vercel-ready)
+
+[`website/`](website/) is a pure-static copy of the pitch site with a **playable
+in-browser demo** (screen + phone side by side, engine runs client-side — no server
+needed). Deploy it to your domain in minutes: import the repo on Vercel and set the
+Root Directory to `website`. Full instructions in [`website/README.md`](website/README.md).
+
 ## Documentation
 
 | Doc | What it covers |
