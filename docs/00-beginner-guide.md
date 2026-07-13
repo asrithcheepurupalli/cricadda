@@ -55,6 +55,17 @@ one tap to confirm:
 > fixed in two taps. Manual scoring works perfectly with zero hardware — sensors just
 > make it faster and cooler.
 
+### Step 6 — Friends watch live, and the match ends like TV 👀🏆
+
+Anyone — a parent at home, a friend at work — can open the **spectator page**, type the
+match code, and follow ball-by-ball live with full scorecards. No app, no login. And when
+the match ends, the big screen shows the result, both scorecards, and an automatically
+chosen **Player of the Match**:
+
+<img src="images/spectator-live.png" alt="Spectator live view on a phone" width="320">
+
+![Match result with scorecards and Player of the Match](images/screen-result.png)
+
 ## Try It Yourself (2 minutes)
 
 You only need [Node.js](https://nodejs.org) installed. Then:

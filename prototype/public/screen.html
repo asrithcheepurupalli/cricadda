@@ -58,8 +58,16 @@
 
   /* result / break */
   .center-msg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; text-align: center; }
-  .center-msg .headline { font-size: 6vw; font-weight: 900; color: var(--gold); }
-  .center-msg .sub2 { font-size: 2.4vw; color: var(--dim); font-weight: 700; }
+  .center-msg .headline { font-size: 5vw; font-weight: 900; color: var(--gold); }
+  .center-msg .sub2 { font-size: 2vw; color: var(--dim); font-weight: 700; }
+  .center-msg .mom { font-size: 2.4vw; font-weight: 900; color: var(--blue); }
+  .sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2vw; width: 100%; max-width: 90vw; }
+  .sc { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1.6vh 1.4vw; text-align: left; }
+  .sc h4 { font-size: 1.6vw; margin-bottom: 1vh; }
+  .sc table { width: 100%; border-collapse: collapse; font-size: 1.35vw; font-weight: 700; }
+  .sc td { padding: 0.5vh 0.4vw; border-bottom: 1px solid var(--line); }
+  .sc td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sc .dimrow { color: var(--dim); font-size: 1vw; text-transform: uppercase; letter-spacing: 0.12em; }
 </style>
 </head>
 <body>
@@ -175,11 +183,27 @@ function renderLive(st) {
     </div>
     <div class="footer-strip">
       <div>${esc(st.setup.teamA)} vs ${esc(st.setup.teamB)}</div>
-      <div>Powered by CricAdda · every ball logged, zero disputes</div>
+      <div>📲 Watch live: ${esc(location.host)}/spectator.html · code ${esc(code)}</div>
     </div>`;
 }
 
-function renderCenter(headline, sub) {
+function scorecardPanel(inn, idx) {
+  const bats = inn.batters.filter((b) => b.balls > 0 || b.runs > 0 || b.out);
+  const bowls = inn.bowlers.filter((b) => b.balls > 0);
+  const ov = (balls) => `${Math.floor(balls / 6)}.${balls % 6}`;
+  return `<div class="sc">
+    <h4>${esc(inn.battingTeam)} — ${inn.runs}/${inn.wickets} (${inn.overs} ov)</h4>
+    <table>
+      <tr class="dimrow"><td>Batter</td><td class="num">R</td><td class="num">B</td></tr>
+      ${bats.map((b) => `<tr><td>${esc(b.name)}${b.out ? ' †' : ''}</td><td class="num">${b.runs}</td><td class="num">${b.balls}</td></tr>`).join('')}
+      ${bowls.length ? `<tr class="dimrow"><td>Bowler</td><td class="num">R</td><td class="num">W</td></tr>` : ''}
+      ${bowls.map((b) => `<tr><td>${esc(b.name)} (${ov(b.balls)})</td><td class="num">${b.runs}</td><td class="num">${b.wickets}</td></tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+function renderCenter(headline, sub, st, mom) {
+  const cards = st ? `<div class="sc-grid">${st.innings.map(scorecardPanel).join('')}</div>` : '';
   stage.innerHTML = `
     <div class="topbar">
       <div class="brand">Cric<span>Adda</span></div>
@@ -187,7 +211,9 @@ function renderCenter(headline, sub) {
     </div>
     <div class="center-msg">
       <div class="headline">${esc(headline)}</div>
+      ${mom ? `<div class="mom">⭐ Player of the Match: ${esc(mom.name)} — ${esc(mom.summary)}</div>` : ''}
       <div class="sub2">${esc(sub)}</div>
+      ${cards}
     </div>`;
 }
 
@@ -195,10 +221,10 @@ function render(st) {
   if (st.phase === 'waiting') return renderWaiting();
   if (st.phase === 'innings_break') {
     const i1 = st.innings[0];
-    return renderCenter(`${i1.battingTeam}: ${i1.runs}/${i1.wickets}`,
-      `Innings break (${i1.endReason}) — ${st.innings[0].bowlingTeam} need ${i1.runs + 1} to win. Waiting for the scorer…`);
+    return renderCenter(`Innings break — ${i1.bowlingTeam} need ${i1.runs + 1} to win`,
+      `First innings: ${i1.endReason}. Waiting for the scorer to pick the opening bowler…`, st);
   }
-  if (st.phase === 'result') return renderCenter('🏆 ' + st.result, 'Great game! Scorecard saved — start a rematch from the phone.');
+  if (st.phase === 'result') return renderCenter('🏆 ' + st.result, 'Great game! Start a rematch from the phone.', st, st.mom);
   renderLive(st);
 }
 

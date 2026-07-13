@@ -20,6 +20,7 @@ Then:
 1. **Big screen** (laptop/TV): open `http://localhost:3000/screen.html` → shows a 4-digit pairing code
 2. **Phone** (same Wi-Fi): open `http://<your-ip>:3000` (printed by the server) → Phone Controller → enter the code
 3. **Sensor demo**: open `/sensor.html` anywhere to simulate the boundary sensor / AI camera firing
+4. **Spectator view**: open `/spectator.html` on any device — friends follow ball-by-ball live with full scorecards, no login
 
 | Big screen | Phone controller |
 |---|---|
@@ -27,10 +28,13 @@ Then:
 
 ![Six celebration](docs/images/screen-six.png)
 
+![Match result with scorecards and Player of the Match](docs/images/screen-result.png)
+
 The demo proves the whole core loop: **pair with a code → phone controls the screen →
 live scoring with celebrations → sensor auto-detection with one-tap confirm → full match
-to a result, with undo and rematch.** The engine is event-sourced (every ball is a logged
-event) — the same architecture the production system uses.
+to a result with scorecards and Player of the Match, plus undo, rematch, and a no-login
+spectator view.** The engine is event-sourced (every ball is a logged event) — the same
+architecture the production system uses.
 
 ## Documentation
 

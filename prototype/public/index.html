@@ -11,7 +11,8 @@
   .hero h1 { font-size: 40px; } .hero h1 span { color: var(--green); }
   .hero p { color: var(--dim); font-size: 16px; margin-top: 8px; }
   .launch { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 24px 0; }
-  @media (min-width: 560px) { .launch { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 560px) { .launch { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 720px) { .launch { grid-template-columns: repeat(4, 1fr); } }
   .launch a { text-decoration: none; }
   .launch .card { text-align: center; height: 100%; transition: border-color 0.15s; }
   .launch .card:hover { border-color: var(--green); }
@@ -47,6 +48,10 @@
   <a href="sensor.html"><div class="card">
     <div class="em">⚡</div><h3>Sensor Simulator</h3>
     <p>Pretends to be the boundary sensor &amp; AI camera — demo the auto-detection flow.</p>
+  </div></a>
+  <a href="spectator.html"><div class="card">
+    <div class="em">👀</div><h3>Spectator View</h3>
+    <p>Friends &amp; family follow ball-by-ball live with full scorecards. View only, no login.</p>
   </div></a>
 </div>
 

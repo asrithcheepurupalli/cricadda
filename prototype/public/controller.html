@@ -282,7 +282,9 @@ function render() {
     $('resultBox').querySelector('.row').style.display = 'none';
   } else if (state.phase === 'result') {
     $('resultText').textContent = '🏆 ' + state.result;
-    $('resultSub').textContent = 'Every ball was logged — the full scorecard lives in the event log.';
+    $('resultSub').textContent = state.mom
+      ? `⭐ Player of the Match: ${state.mom.name} — ${state.mom.summary}`
+      : 'Every ball was logged — the full scorecard lives in the event log.';
     $('resultBox').querySelector('.row').style.display = 'flex';
   }
 }

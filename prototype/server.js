@@ -183,8 +183,26 @@ function computeState(room) {
     endReason: i.endReason,
   });
 
+  // Man of the Match: batting runs + 25 points per wicket, across both innings
+  let mom = null;
+  if (phase === 'result') {
+    const points = new Map();
+    const add = (name, p, line) => {
+      const e = points.get(name) || { p: 0, lines: [] };
+      e.p += p; if (line) e.lines.push(line);
+      points.set(name, e);
+    };
+    for (const i of innings) {
+      for (const b of i.batters) if (b.balls > 0 || b.runs > 0) add(b.name, b.runs, `${b.runs} (${b.balls})`);
+      for (const b of i.bowlers) if (b.balls > 0) add(b.name, b.wickets * 25, `${b.wickets}/${b.runs}`);
+    }
+    let best = null;
+    for (const [name, e] of points) if (!best || e.p > best.p) best = { name, p: e.p, summary: e.lines.join(' & ') };
+    if (best) mom = { name: best.name, summary: best.summary };
+  }
+
   const view = {
-    phase, seq: room.seq,
+    phase, seq: room.seq, mom,
     setup: { teamA: setup.A.name, teamB: setup.B.name, overs: setup.overs },
     innings: innings.map(innView),
     inningsNo: innings.length,
