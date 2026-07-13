@@ -144,6 +144,43 @@
   .hs { text-align: center; }
   .hs .n { font-family: 'Press Start 2P', monospace; font-size: clamp(16px, 3vw, 26px); color: var(--gold); }
   .hs .l { font-family: 'VT323', monospace; font-size: 18px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 8px; }
+
+  /* ---------- mobile ---------- */
+  @media (max-width: 700px) {
+    body { font-size: 19px; }
+    nav { padding: 10px 0; }
+    nav .wrap { flex-direction: column; align-items: stretch; gap: 10px; flex-wrap: nowrap; }
+    .navlogo { text-align: center; }
+    nav .links {
+      min-width: 0; max-width: 100%;
+      flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; gap: 16px; padding-bottom: 2px; justify-content: flex-start;
+    }
+    nav .links::-webkit-scrollbar { display: none; }
+    nav .links a { white-space: nowrap; font-size: 17px; }
+    .hero { padding: 40px 0 28px; }
+    .hero .insert { font-size: 9px; }
+    .hero .tag { line-height: 1.9; padding: 0 6px; }
+    .hero p.sub { font-size: 19px; padding: 0 4px; }
+    .hero .cta-row .btn { width: 100%; max-width: 340px; text-align: center; }
+    .hiscore { gap: 18px 30px; margin-top: 26px; }
+    section { padding: 44px 0; }
+    .sec-head { margin-bottom: 28px; }
+    .sec-head p { font-size: 19px; }
+    .arcade-frame { padding: 16px 12px; }
+    .level { flex-direction: column; gap: 12px; padding: 18px 16px; }
+    .level .lv { align-self: flex-start; }
+    .level p { font-size: 19px; }
+    .flowchart svg { min-width: 640px; }
+    .steps60 li { padding: 14px; gap: 12px; }
+    .steps60 li span { font-size: 19px; }
+    .pu p { font-size: 18px; }
+    .q-step { gap: 14px; }
+    .q-dot { font-size: 9px; padding: 8px 10px; }
+    .q-body p { font-size: 19px; }
+    .final { padding: 56px 0; }
+    footer { font-size: 17px; padding: 22px 14px 34px; }
+  }
 </style>
 </head>
 <body class="crt">
