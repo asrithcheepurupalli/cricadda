@@ -141,6 +141,43 @@
   .field-row { display: flex; gap: 8px; }
   .field-row > * { flex: 1; }
   .ph small.err { color: var(--red); font-size: 16px; display: block; margin-top: 8px; }
+
+  /* ---------- mobile ---------- */
+  @media (max-width: 700px) {
+    .wrap { padding: 12px; }
+    .hinttxt { display: none; }
+    .duo { gap: 20px; }
+    .tv { aspect-ratio: auto; min-height: 300px; padding: 14px 12px; gap: 8px; }
+    .tv-grid { grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+    .tv-panel { padding: 10px 12px; }
+    .tv-sec { font-size: 8px; margin-bottom: 8px; }
+    .tv-prow { font-size: 15px; padding: 4px 0; }
+    .tv-team { font-size: 11px; }
+    .tv-runs { font-size: 30px; }
+    .tv-ov { font-size: 14px; }
+    .tv-chase { font-size: 9px; margin-top: 6px; }
+    .tv-code { font-size: 46px; }
+    .tv-code-label { font-size: 7px; }
+    .tv-hint { font-size: 15px; }
+    .tv-bound { font-size: 14px; margin-top: 10px; }
+    .tv-footer { font-size: 12px; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    .tv-center { gap: 12px; padding: 18px 0; }
+    .tv-result { gap: 12px; padding: 6px 0; }
+    .tv-result .r { font-size: 12px; line-height: 1.8; }
+    .tv-result .mom { font-size: 8px; line-height: 1.8; }
+    .tv-sc-grid { grid-template-columns: 1fr; gap: 10px; }
+    .tv-sc h5 { font-size: 8px; }
+    .tv-sc table { font-size: 14px; }
+    .tv-flash { position: fixed; inset: 0; z-index: 99; }  /* celebrations take over the whole phone */
+    .tv-flash .big { font-size: 52px; }
+    .tv-flash .sub { font-size: 17px; }
+    .tv-flash .autotag { font-size: 8px; }
+    .sensor-row { gap: 8px; margin-top: 12px; }
+    .sensor-row button { font-size: 8px; padding: 12px 6px; line-height: 1.8; }
+    .sensor-note { font-size: 15px; }
+    .phone { max-width: 100%; padding: 14px 12px 18px; }
+    .tv-shell { position: static; }
+  }
 </style>
 </head>
 <body class="crt">
