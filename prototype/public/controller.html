@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>CricAdda — Match Controller</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { max-width: 520px; margin: 0 auto; padding: 16px; padding-bottom: 40px; }
+  .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .head h1 { font-size: 22px; } .head h1 span { color: var(--green); }
+  .step { display: none; } .step.active { display: block; }
+  .code-input { font-size: 34px; letter-spacing: 0.3em; text-align: center; font-weight: 900; }
+  .mini-score { text-align: center; margin: 14px 0; }
+  .mini-score .r { font-size: 44px; font-weight: 900; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .mini-score .t { color: var(--dim); font-weight: 700; font-size: 14px; }
+  .mini-score .chase { color: var(--gold); font-weight: 800; font-size: 15px; margin-top: 4px; }
+  .bats { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--dim); margin: 8px 2px; }
+  .bats b { color: var(--text); }
+  .pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .pad button { font-size: 22px; padding: 18px 0; }
+  .pad .b4 { background: var(--green); border-color: var(--green); color: #052b12; }
+  .pad .b6 { background: var(--gold); border-color: var(--gold); color: #3a2a00; }
+  .pad .bw { background: var(--red); border-color: var(--red); color: #fff; grid-column: span 2; }
+  .pad .wide, .pad .nb { font-size: 15px; }
+  .toolsrow { display: flex; gap: 10px; margin-top: 12px; }
+  .toolsrow button { flex: 1; font-size: 14px; padding: 12px 0; }
+  .auto-banner {
+    border: 2px solid var(--blue); background: rgba(56,189,248,0.08);
+    border-radius: var(--radius); padding: 14px; margin: 14px 0; display: none;
+  }
+  .auto-banner.show { display: block; animation: slide 0.25s ease; }
+  @keyframes slide { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .auto-banner .tag { color: var(--blue); font-weight: 800; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .auto-banner .what { font-size: 20px; font-weight: 900; margin: 4px 0 10px; }
+  .bowler-pick { margin: 14px 0; }
+  .bowler-pick button { display: block; width: 100%; margin-bottom: 8px; text-align: left; }
+  .section-gap { margin-top: 18px; }
+  .result-box { text-align: center; padding: 30px 16px; }
+  .result-box .r { font-size: 26px; font-weight: 900; color: var(--gold); margin-bottom: 10px; }
+  .overballs { margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Cric<span>Adda</span></h1>
+  <span class="badge auto" id="connBadge">controller</span>
+</div>
+
+<!-- STEP 1: pair -->
+<div class="step active" id="stepPair">
+  <div class="card">
+    <h2 style="font-size:18px">Pair with the turf screen</h2>
+    <p class="dim" style="margin-top:6px;font-size:14px">Enter the 4-digit code shown on the big screen at the turf.</p>
+    <label>Pairing code</label>
+    <input class="code-input" id="codeInput" inputmode="numeric" maxlength="4" placeholder="0000" autocomplete="off">
+    <button class="primary" style="width:100%;margin-top:16px" onclick="pair()">Connect to screen</button>
+    <p class="dim" id="pairErr" style="margin-top:10px;font-size:13px"></p>
+  </div>
+</div>
+
+<!-- STEP 2: match setup -->
+<div class="step" id="stepSetup">
+  <div class="card">
+    <h2 style="font-size:18px">Match setup</h2>
+    <div class="row">
+      <div><label>Team A</label><input id="teamA" value="Royal Strikers"></div>
+      <div><label>Team B</label><input id="teamB" value="Turf Titans"></div>
+    </div>
+    <div class="row">
+      <div><label>Team A players (one per line)</label>
+        <textarea id="playersA" rows="6">Asrith
+Rahul
+Vikram
+Sandeep
+Kiran
+Manoj</textarea></div>
+      <div><label>Team B players (one per line)</label>
+        <textarea id="playersB" rows="6">Partha
+Suresh
+Anil
+Deepak
+Ravi
+Teja</textarea></div>
+    </div>
+    <div class="row">
+      <div><label>Overs per side</label><input id="overs" type="number" value="4" min="1" max="50"></div>
+      <div><label>Batting first</label>
+        <select id="firstBatting"><option value="A">Team A</option><option value="B">Team B</option></select>
+      </div>
+    </div>
+    <button class="primary" style="width:100%;margin-top:18px" onclick="submitSetup()">Start match → screen goes live</button>
+  </div>
+</div>
+
+<!-- STEP 3: scoring -->
+<div class="step" id="stepScore">
+  <div class="card">
+    <div class="mini-score">
+      <div class="t" id="msTeam"></div>
+      <div class="r" id="msScore"></div>
+      <div class="t" id="msOvers"></div>
+      <div class="chase" id="msChase"></div>
+    </div>
+    <div class="bats" id="msBats"></div>
+    <div class="balls overballs" id="msOver"></div>
+  </div>
+
+  <!-- simulated sensor suggestion (hybrid mode) -->
+  <div class="auto-banner" id="autoBanner">
+    <div class="tag">⚡ Auto-detected · <span id="autoDevice"></span></div>
+    <div class="what" id="autoWhat"></div>
+    <div class="row">
+      <button class="primary" onclick="confirmAuto(true)">✓ Confirm</button>
+      <button onclick="confirmAuto(false)">✕ Ignore</button>
+    </div>
+  </div>
+
+  <!-- bowler selection -->
+  <div class="card bowler-pick" id="bowlerPick" style="display:none">
+    <h3 style="font-size:16px;margin-bottom:10px">Select bowler for this over</h3>
+    <div id="bowlerBtns"></div>
+  </div>
+
+  <!-- scoring pad -->
+  <div id="padWrap">
+    <div class="pad">
+      <button onclick="ball(0)">0</button>
+      <button onclick="ball(1)">1</button>
+      <button onclick="ball(2)">2</button>
+      <button onclick="ball(3)">3</button>
+      <button class="b4" onclick="ball(4)">4</button>
+      <button class="b6" onclick="ball(6)">6</button>
+      <button class="wide" onclick="extra('wd')">Wide</button>
+      <button class="nb" onclick="extra('nb')">No ball</button>
+      <button class="bw" onclick="wicket()">WICKET</button>
+      <button onclick="ball(5)" style="font-size:15px">5</button>
+      <button onclick="undo()" style="font-size:15px">↩ Undo</button>
+    </div>
+    <div class="toolsrow">
+      <button onclick="demoAuto('four')">🧪 Simulate sensor 4</button>
+      <button onclick="demoAuto('six')">🧪 Simulate camera 6</button>
+    </div>
+    <p class="dim" style="font-size:12px;margin-top:8px;text-align:center">
+      🧪 buttons pretend a boundary sensor / AI camera fired — showing how hybrid auto-scoring feels.
+      In real installs these come from actual hardware (or the sensor demo page).
+    </p>
+  </div>
+
+  <!-- innings break / result -->
+  <div class="card result-box" id="resultBox" style="display:none">
+    <div class="r" id="resultText"></div>
+    <div class="dim" id="resultSub" style="font-size:14px;margin-bottom:16px"></div>
+    <div class="row">
+      <button class="gold" onclick="rematch()">🔁 Rematch</button>
+      <button onclick="resetAll()">New teams</button>
+    </div>
+  </div>
+
+  <div class="toolsrow section-gap">
+    <button class="danger" onclick="resetAll()" style="flex:0 0 auto;padding:12px 16px">End / reset</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let code = null, state = null;
+
+const $ = (id) => document.getElementById(id);
+function show(step) {
+  for (const s of ['stepPair', 'stepSetup', 'stepScore']) $(s).classList.toggle('active', s === step);
+}
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+async function api(path, body) {
+  const r = await fetch(`/api/room/${code}/${path}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}),
+  });
+  return r.json();
+}
+
+// ---------- pairing ----------
+async function pair() {
+  code = $('codeInput').value.trim();
+  if (!/^\d{4}$/.test(code)) { $('pairErr').textContent = 'Enter the 4 digits shown on the screen.'; return; }
+  const r = await fetch(`/api/room/${code}/pair`, { method: 'POST' }).then((x) => x.json());
+  if (r.error) { $('pairErr').textContent = r.error; return; }
+  $('connBadge').textContent = '● paired to ' + code;
+  subscribe();
+  show(r.hasSetup ? 'stepScore' : 'stepSetup');
+  toast('Connected! You control the big screen now 🎮');
+}
+
+// ---------- setup ----------
+async function submitSetup() {
+  await api('setup', {
+    teamA: $('teamA').value, teamB: $('teamB').value,
+    playersA: $('playersA').value.split('\n'), playersB: $('playersB').value.split('\n'),
+    overs: $('overs').value, firstBatting: $('firstBatting').value,
+  });
+  show('stepScore');
+}
+
+// ---------- scoring actions ----------
+const ev = (body) => api('event', body);
+function ball(runs) { ev({ type: 'ball', runs }); }
+function extra(kind) {
+  if (kind === 'nb') {
+    const runs = parseInt(prompt('Runs off the no-ball bat? (0-6)', '0') || '0', 10) || 0;
+    return ev({ type: 'ball', runs, extra: 'nb' });
+  }
+  ev({ type: 'ball', runs: 0, extra: 'wd' });
+}
+function wicket() { ev({ type: 'ball', runs: 0, wicket: true }); }
+function undo() { ev({ type: 'undo' }); toast('Last ball removed'); }
+function setBowler(name) { ev({ type: 'setBowler', name }); }
+function rematch() { if (confirm('Start a rematch with the same teams?')) ev({ type: 'rematch' }); }
+function resetAll() { if (confirm('End the session and clear the screen?')) { ev({ type: 'reset' }); show('stepSetup'); } }
+function demoAuto(kind) { ev({ type: 'auto', kind }); }
+function confirmAuto(accept) {
+  const p = state && state.pendingAuto;
+  if (!p) return;
+  if (accept) ev({ type: 'ball', runs: p.runs, source: 'sensor' });
+  else ev({ type: 'dismissAuto' });
+}
+
+// ---------- live state ----------
+function subscribe() {
+  const es = new EventSource(`/api/room/${code}/stream`);
+  es.onmessage = (e) => { state = JSON.parse(e.data); render(); };
+}
+
+function render() {
+  if (!state) return;
+  if (state.phase === 'waiting') { show('stepSetup'); return; }
+
+  const l = state.live;
+  $('msTeam').textContent = l.battingTeam + ' batting';
+  $('msScore').textContent = `${l.runs}/${l.wickets}`;
+  $('msOvers').textContent = `${l.overs} overs · ${state.setup.overs} per side · innings ${state.inningsNo}/2`;
+  $('msChase').textContent = state.chase ? `Need ${state.chase.need} off ${state.chase.ballsLeft} (RRR ${state.chase.rrr})` : '';
+  $('msBats').innerHTML = [
+    l.striker ? `<span><b>${escq(l.striker.name)}*</b> ${l.striker.runs}(${l.striker.balls})</span>` : '<span></span>',
+    l.nonStriker ? `<span>${escq(l.nonStriker.name)} ${l.nonStriker.runs}(${l.nonStriker.balls})</span>` : '<span></span>',
+    l.bowler ? `<span>🎯 ${escq(l.bowler.name)} ${l.bowler.wickets}/${l.bowler.runs}</span>` : '<span></span>',
+  ].join('');
+  $('msOver').innerHTML = l.thisOver.map((b) => {
+    const cls = b.d === 'W' ? 'bw' : b.d === '4' ? 'b4' : b.d.startsWith('Nb+6') || b.d === '6' ? 'b6' : '';
+    return `<span class="ball-chip ${cls}${b.src === 'sensor' ? ' sensor' : ''}">${escq(b.d)}</span>`;
+  }).join('') || '<span class="dim" style="font-size:13px">New over — pick the bowler</span>';
+
+  // pending auto-detection
+  const p = state.pendingAuto;
+  $('autoBanner').classList.toggle('show', !!p && state.phase === 'live');
+  if (p) {
+    $('autoDevice').textContent = p.device;
+    $('autoWhat').textContent = p.kind === 'six' ? 'SIX detected — ball cleared the net line' : 'FOUR detected — ball hit the boundary';
+  }
+
+  // bowler selection
+  const needsBowler = state.phase === 'live' && l.needsBowler;
+  $('bowlerPick').style.display = needsBowler ? 'block' : 'none';
+  $('padWrap').style.display = state.phase === 'live' && !needsBowler ? 'block' : 'none';
+  if (needsBowler) {
+    $('bowlerBtns').innerHTML = state.bowlingTeamPlayers
+      .map((n) => `<button onclick="setBowler('${escq(n).replace(/'/g, "\\'")}')">🎳 ${escq(n)}</button>`).join('');
+  }
+
+  // break / result
+  const done = state.phase === 'innings_break' || state.phase === 'result';
+  $('resultBox').style.display = done ? 'block' : 'none';
+  if (state.phase === 'innings_break') {
+    const i1 = state.innings[0];
+    $('resultText').textContent = `Innings over: ${i1.battingTeam} ${i1.runs}/${i1.wickets}`;
+    $('resultSub').textContent = `${i1.bowlingTeam} need ${i1.runs + 1} to win. Pick the opening bowler to begin.`;
+    $('bowlerPick').style.display = 'block';
+    $('bowlerBtns').innerHTML = state.bowlingTeamPlayers
+      .map((n) => `<button onclick="setBowler('${escq(n).replace(/'/g, "\\'")}')">🎳 ${escq(n)}</button>`).join('');
+    $('resultBox').querySelector('.row').style.display = 'none';
+  } else if (state.phase === 'result') {
+    $('resultText').textContent = '🏆 ' + state.result;
+    $('resultSub').textContent = 'Every ball was logged — the full scorecard lives in the event log.';
+    $('resultBox').querySelector('.row').style.display = 'flex';
+  }
+}
+
+function escq(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+
+// allow ?code=1234 in URL for quick testing
+const qp = new URLSearchParams(location.search).get('code');
+if (qp) { $('codeInput').value = qp; pair(); }
+</script>
+</body>
+</html>

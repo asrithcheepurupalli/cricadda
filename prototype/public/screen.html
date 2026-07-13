@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CricAdda — Turf Screen</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { overflow: hidden; }
+  .stage { height: 100vh; display: flex; flex-direction: column; padding: 3vh 3vw; gap: 2vh; }
+
+  /* ---- waiting / pairing ---- */
+  .pairing { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3vh; }
+  .logo { font-size: 5vw; font-weight: 900; letter-spacing: -0.03em; }
+  .logo span { color: var(--green); }
+  .code-box { background: var(--panel); border: 2px solid var(--line); border-radius: 24px; padding: 3vh 6vw; }
+  .code-label { font-size: 1.6vw; color: var(--dim); text-transform: uppercase; letter-spacing: 0.2em; font-weight: 800; }
+  .code { font-size: 12vw; font-weight: 900; letter-spacing: 0.12em; color: var(--gold); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .hint { font-size: 1.8vw; color: var(--dim); max-width: 60vw; line-height: 1.5; }
+
+  /* ---- scoreboard ---- */
+  .topbar { display: flex; justify-content: space-between; align-items: center; }
+  .topbar .brand { font-size: 1.8vw; font-weight: 900; }
+  .topbar .brand span { color: var(--green); }
+  .score-main { display: flex; align-items: baseline; gap: 2vw; }
+  .team-name { font-size: 3.2vw; font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; }
+  .big-score { font-size: 9vw; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+  .big-overs { font-size: 3vw; color: var(--dim); font-weight: 800; }
+  .chase-bar { font-size: 2.4vw; font-weight: 800; color: var(--gold); }
+  .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2vh 2vw; flex: 1; min-height: 0; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 2.2vh 1.6vw; }
+  .prow { display: flex; justify-content: space-between; align-items: baseline; padding: 1vh 0; border-bottom: 1px solid var(--line); }
+  .prow:last-child { border-bottom: none; }
+  .pname { font-size: 2.4vw; font-weight: 800; }
+  .pname .star { color: var(--green); }
+  .pstat { font-size: 2.4vw; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .pstat small { font-size: 1.4vw; color: var(--dim); font-weight: 700; }
+  .sec-label { font-size: 1.1vw; color: var(--dim); text-transform: uppercase; letter-spacing: 0.18em; font-weight: 800; margin-bottom: 1vh; }
+  .screen-balls .ball-chip { min-width: 3.4vw; height: 3.4vw; font-size: 1.7vw; border-radius: 50%; }
+  .footer-strip { display: flex; justify-content: space-between; align-items: center; font-size: 1.5vw; color: var(--dim); font-weight: 700; }
+
+  /* ---- celebration overlay ---- */
+  .overlay {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 2vh; z-index: 50; text-align: center;
+  }
+  .overlay.show { display: flex; animation: pop 0.35s ease; }
+  .overlay .big { font-size: 18vw; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+  .overlay .sub { font-size: 3vw; font-weight: 800; }
+  .overlay.four { background: rgba(4, 47, 24, 0.93); } .overlay.four .big { color: var(--green); }
+  .overlay.six { background: rgba(58, 42, 0, 0.93); } .overlay.six .big { color: var(--gold); }
+  .overlay.wicket { background: rgba(69, 10, 10, 0.94); } .overlay.wicket .big { color: var(--red); }
+  .overlay.milestone { background: rgba(12, 36, 60, 0.95); } .overlay.milestone .big { color: var(--blue); font-size: 12vw; }
+  @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .src-tag { font-size: 1.6vw; font-weight: 800; color: var(--blue); border: 2px solid var(--blue); border-radius: 999px; padding: 0.6vh 1.6vw; }
+
+  .sound-btn { position: fixed; right: 16px; bottom: 16px; z-index: 60; opacity: 0.6; font-size: 13px; padding: 8px 14px; }
+
+  /* result / break */
+  .center-msg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; text-align: center; }
+  .center-msg .headline { font-size: 6vw; font-weight: 900; color: var(--gold); }
+  .center-msg .sub2 { font-size: 2.4vw; color: var(--dim); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage"></div>
+
+<div class="overlay" id="overlay">
+  <div class="big" id="ovBig"></div>
+  <div class="sub" id="ovSub"></div>
+  <div class="src-tag" id="ovSrc" style="display:none"></div>
+</div>
+
+<button class="sound-btn" id="soundBtn">🔇 Enable sound</button>
+
+<script>
+const stage = document.getElementById('stage');
+let code = null, lastFxSeq = 0, firstRender = true;
+
+// ---------- sound (tiny synthesized stadium cues, no assets) ----------
+let audioCtx = null;
+document.getElementById('soundBtn').onclick = () => {
+  if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+  document.getElementById('soundBtn').textContent = '🔊 Sound on';
+};
+function tone(freq, dur, delay = 0, type = 'square', vol = 0.12) {
+  if (!audioCtx) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(audioCtx.currentTime + delay); o.stop(audioCtx.currentTime + delay + dur);
+}
+const sounds = {
+  four:   () => { tone(523, 0.15); tone(659, 0.15, 0.12); tone(784, 0.3, 0.24); },
+  six:    () => { tone(523, 0.12); tone(659, 0.12, 0.1); tone(784, 0.12, 0.2); tone(1047, 0.5, 0.3); },
+  wicket: () => { tone(311, 0.2, 0, 'sawtooth'); tone(233, 0.2, 0.18, 'sawtooth'); tone(155, 0.5, 0.36, 'sawtooth'); },
+  milestone: () => { for (let i = 0; i < 4; i++) tone(784 + i * 100, 0.15, i * 0.1, 'triangle', 0.15); },
+};
+
+// ---------- celebration overlay ----------
+const overlay = document.getElementById('overlay');
+let overlayTimer = null;
+function celebrate(cls, big, sub, srcTag) {
+  overlay.className = 'overlay show ' + cls;
+  document.getElementById('ovBig').textContent = big;
+  document.getElementById('ovSub').textContent = sub || '';
+  const s = document.getElementById('ovSrc');
+  if (srcTag) { s.style.display = 'inline-block'; s.textContent = srcTag; } else { s.style.display = 'none'; }
+  clearTimeout(overlayTimer);
+  overlayTimer = setTimeout(() => { overlay.className = 'overlay'; }, cls === 'milestone' ? 3500 : 2500);
+  if (sounds[cls]) sounds[cls]();
+}
+
+// ---------- rendering ----------
+function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+
+function ballChip(b, big) {
+  const cls = b.d === 'W' ? 'bw' : b.d === '4' ? 'b4' : b.d === '6' || b.d.startsWith('Nb+6') ? 'b6' : '';
+  const sensor = b.src === 'sensor' ? ' sensor' : '';
+  return `<span class="ball-chip ${cls}${sensor}">${esc(b.d)}</span>`;
+}
+
+function renderWaiting() {
+  stage.innerHTML = `
+    <div class="pairing">
+      <div class="logo">Cric<span>Adda</span></div>
+      <div class="code-box">
+        <div class="code-label">Pairing code — enter this in your app</div>
+        <div class="code">${esc(code || '····')}</div>
+      </div>
+      <div class="hint">On your phone, open the CricAdda app (or this server's address on the same Wi-Fi),
+        tap <b>Score a match</b>, and enter the code above. Your phone becomes the remote for this screen.</div>
+    </div>`;
+}
+
+function renderLive(st) {
+  const l = st.live;
+  const striker = l.striker, ns = l.nonStriker, bw = l.bowler;
+  const chase = st.chase
+    ? `<div class="chase-bar">Target ${l.target} · Need ${st.chase.need} off ${st.chase.ballsLeft} · RRR ${st.chase.rrr}</div>`
+    : `<div class="chase-bar" style="color:var(--dim)">Innings ${st.inningsNo} of 2 · ${st.setup.overs} overs/side</div>`;
+
+  stage.innerHTML = `
+    <div class="topbar">
+      <div class="brand">Cric<span>Adda</span></div>
+      <span class="badge live">● LIVE</span>
+      <div class="dim" style="font-size:1.4vw;font-weight:700">Code ${esc(code)}</div>
+    </div>
+    <div class="score-main">
+      <div class="team-name">${esc(l.battingTeam)}</div>
+      <div class="big-score">${l.runs}/${l.wickets}</div>
+      <div class="big-overs">(${l.overs} ov)</div>
+    </div>
+    ${chase}
+    <div class="grid">
+      <div class="panel">
+        <div class="sec-label">Batting</div>
+        ${striker ? `<div class="prow"><div class="pname">${esc(striker.name)} <span class="star">*</span></div><div class="pstat">${striker.runs} <small>(${striker.balls})</small></div></div>` : ''}
+        ${ns ? `<div class="prow"><div class="pname">${esc(ns.name)}</div><div class="pstat">${ns.runs} <small>(${ns.balls})</small></div></div>` : ''}
+        <div class="sec-label" style="margin-top:2vh">Bowling</div>
+        ${bw
+          ? `<div class="prow"><div class="pname">${esc(bw.name)}</div><div class="pstat">${bw.wickets}/${bw.runs} <small>(${bw.overs})</small></div></div>`
+          : `<div class="prow"><div class="pname dim">Selecting bowler…</div></div>`}
+      </div>
+      <div class="panel">
+        <div class="sec-label">This over</div>
+        <div class="balls screen-balls">${l.thisOver.map(ballChip).join('') || '<span class="dim" style="font-size:1.6vw">New over</span>'}</div>
+        <div class="sec-label" style="margin-top:2.4vh">Boundaries</div>
+        <div style="font-size:2.2vw;font-weight:900">
+          <span class="green">${l.fours} × FOUR</span> &nbsp;·&nbsp; <span class="gold">${l.sixes} × SIX</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-strip">
+      <div>${esc(st.setup.teamA)} vs ${esc(st.setup.teamB)}</div>
+      <div>Powered by CricAdda · every ball logged, zero disputes</div>
+    </div>`;
+}
+
+function renderCenter(headline, sub) {
+  stage.innerHTML = `
+    <div class="topbar">
+      <div class="brand">Cric<span>Adda</span></div>
+      <div class="dim" style="font-size:1.4vw;font-weight:700">Code ${esc(code)}</div>
+    </div>
+    <div class="center-msg">
+      <div class="headline">${esc(headline)}</div>
+      <div class="sub2">${esc(sub)}</div>
+    </div>`;
+}
+
+function render(st) {
+  if (st.phase === 'waiting') return renderWaiting();
+  if (st.phase === 'innings_break') {
+    const i1 = st.innings[0];
+    return renderCenter(`${i1.battingTeam}: ${i1.runs}/${i1.wickets}`,
+      `Innings break (${i1.endReason}) — ${st.innings[0].bowlingTeam} need ${i1.runs + 1} to win. Waiting for the scorer…`);
+  }
+  if (st.phase === 'result') return renderCenter('🏆 ' + st.result, 'Great game! Scorecard saved — start a rematch from the phone.');
+  renderLive(st);
+}
+
+function handleFx(st) {
+  const fx = st.lastFx;
+  if (!fx || fx.seq <= lastFxSeq) return;
+  const skip = firstRender; // don't celebrate history on page load
+  lastFxSeq = fx.seq;
+  if (skip) return;
+  const srcTag = fx.source === 'sensor' ? '⚡ AUTO-DETECTED BY SENSOR' : null;
+  if (fx.milestone) return celebrate('milestone', fx.milestone.mark + '!', `${fx.milestone.player} brings up a superb ${fx.milestone.mark === 50 ? 'fifty' : 'century'}!`);
+  if (fx.kind === 'four') return celebrate('four', 'FOUR!', fx.batter ? `${fx.batter} finds the boundary` : '', srcTag);
+  if (fx.kind === 'six') return celebrate('six', 'SIX!', fx.batter ? `${fx.batter} sends it over the net!` : '', srcTag);
+  if (fx.kind === 'wicket') return celebrate('wicket', 'OUT!', fx.batterOut || '');
+}
+
+// ---------- boot: create room, subscribe ----------
+async function boot() {
+  const r = await fetch('/api/screen', { method: 'POST' }).then((x) => x.json());
+  code = r.code;
+  renderWaiting();
+  const es = new EventSource(`/api/room/${code}/stream`);
+  es.onmessage = (e) => {
+    const st = JSON.parse(e.data);
+    render(st);
+    handleFx(st);
+    firstRender = false;
+  };
+  es.onerror = () => { /* EventSource auto-reconnects */ };
+}
+boot();
+</script>
+</body>
+</html>
