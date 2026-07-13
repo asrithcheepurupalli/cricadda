@@ -42,10 +42,12 @@ to a result with scorecards and Player of the Match, plus undo, rematch, and a n
 spectator view.** The engine is event-sourced (every ball is a logged event) — the same
 architecture the production system uses.
 
-## 🕹️ The App — Complete Model (web-first)
+## 🕹️ The Product — Website-First (install optional)
 
-[`website/app/`](website/app/) is the **complete product model as a web app** — the app
-we'll wrap for the Play Store later, built web-first. Live at `/app/` on the hosted site:
+[`website/app/`](website/app/) is the **complete product, on the website** — every feature
+works in the browser at `/app/`, no install. It's also a PWA: users can add it to their
+home screen today, and if we ever want the Play Store, a TWA wrapper ships this same URL
+as the app. One codebase, website first:
 
 - **Onboarding like a game**: made. splash → phone number → OTP (arriving as an on-screen
   SMS) → arcade **character-select with retro pixel avatars** (procedurally generated,
@@ -95,4 +97,4 @@ Root Directory to `website`. Full instructions in [`website/README.md`](website/
 
 ---
 
-*CricAdda — a **made.** product · made. by ac*
+*CricAdda — a **made.** product*

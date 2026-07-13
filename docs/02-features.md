@@ -100,4 +100,4 @@ even cooler. Phase numbers refer to the [roadmap](04-roadmap.md).
 
 ---
 
-*CricAdda — a **made.** product · made. by ac*
+*CricAdda — a **made.** product*

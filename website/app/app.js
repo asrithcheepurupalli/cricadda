@@ -15,6 +15,46 @@ const DB = {
 let profile = DB.load('profile', null);
 let teams = DB.load('teams', []);
 let history = DB.load('history', []);
+let players = DB.load('players', {}); // everyone who ever played: name -> aggregates
+let lastMatch = null;                 // final state of the most recent match (for sharing)
+
+/* ---------------- TV mode (BroadcastChannel) ---------------- */
+let tvChannel = null;
+try {
+  tvChannel = new BroadcastChannel('cricadda_tv');
+  tvChannel.onmessage = (e) => { if (e.data && e.data.type === 'hello' && room) broadcastTV(); };
+} catch (e) {}
+function tvView(st) {
+  const l = st.inn;
+  const striker = l.batters[l.striker] && !l.batters[l.striker].out ? l.batters[l.striker] : null;
+  const ns = l.batters[l.nonStriker] && !l.batters[l.nonStriker].out ? l.batters[l.nonStriker] : null;
+  const bw = l.currentBowler ? l.bowlers.find((b) => b.name === l.currentBowler) : null;
+  return {
+    phase: st.phase, batting: st.setup[l.batKey].name, runs: l.runs, wkts: l.wickets,
+    overs: st.overs, oversMax: st.setup.overs, inningsNo: st.inningsNo, chase: st.chase,
+    striker, ns, bowler: bw, thisOver: l.thisOver, fours: l.fours, sixes: l.sixes,
+    teams: [st.setup.A.name, st.setup.B.name], result: st.result, mom: st.mom,
+    innings: st.innings.map((i) => ({ team: st.setup[i.batKey].name, runs: i.runs, wkts: i.wickets })),
+  };
+}
+function broadcastTV(st) {
+  if (!tvChannel) return;
+  st = st || (room ? matchState() : null);
+  if (!st) return;
+  let fx = null;
+  const evs = room ? room.events.filter((e) => e.type === 'ball') : [];
+  if (evs.length) {
+    const e = evs[evs.length - 1];
+    fx = { seq: e.seq,
+      kind: e.wicket ? 'wicket' : e.runs === 4 && !e.extra ? 'four' : e.runs === 6 && !e.extra ? 'six' : null };
+  }
+  try { tvChannel.postMessage({ type: 'state', view: tvView(st), fx }); } catch (e) {}
+}
+function openTV() {
+  window.open('tv.html', 'cricadda_tv', 'noopener');
+  toast('Put that window on the TV 📺');
+  setTimeout(() => broadcastTV(), 600);
+}
 
 /* ---------------- utils ---------------- */
 const $ = (id) => document.getElementById(id);
@@ -238,7 +278,7 @@ function head(active) {
     </div></div>`;
 }
 function mountMini() { const c = $('miniAv'); if (c) drawAvatar(c, profile.avatarSeed, 2); }
-const FOOT = `<div class="foot"><span class="made-mark">a <b style="color:var(--text)">made.</b> product · made. by ac</span></div>`;
+const FOOT = `<div class="foot"><span class="made-mark">a <b style="color:var(--text)">made.</b> product</span></div>`;
 
 /* ---------- boot ---------- */
 function screenBoot() {
@@ -372,8 +412,11 @@ function screenHome() {
       <button class="primary" onclick="go('setup')"><span class="em">▶</span> QUICK MATCH</button>
       <button onclick="go('teams')"><span class="em">🛡️</span> MY TEAMS</button>
       <button onclick="go('stats')"><span class="em">📊</span> CAREER &amp; BADGES</button>
+      <button onclick="go('leaders')"><span class="em">🏆</span> LEADERBOARD</button>
       <button onclick="go('pair')"><span class="em">🖥️</span> PAIR WITH TURF SCREEN</button>
+      <button id="installBtn" class="gold" style="display:none" onclick="installApp()"><span class="em">📲</span> INSTALL ON HOME SCREEN</button>
     </div>${FOOT}`);
+  if (installPrompt) { const b = $('installBtn'); if (b) b.style.display = 'flex'; }
   drawAvatar($('homeAv'), profile.avatarSeed, 7);
   mountMini();
 }
@@ -518,9 +561,13 @@ function renderMatch() {
   }
   if (st.phase === 'result') { finishMatch(st); return; }
 
-  render(`${head()}<div class="backrow"><button onclick="quitMatch()">◄ QUIT MATCH</button></div>${body}`);
+  render(`${head()}<div class="backrow" style="display:flex;gap:8px;justify-content:space-between">
+    <button onclick="quitMatch()">◄ QUIT</button>
+    <button onclick="openTV()">📺 TV MODE</button>
+  </div>${body}`);
   mountMini();
   handleFx(st);
+  broadcastTV(st);
 }
 function ball(r) { dispatch({ type: 'ball', runs: r }); }
 function quitMatch() { if (confirm('Abandon this match? Nothing will be saved.')) { room = null; go('home'); } }
@@ -572,6 +619,26 @@ function finishMatch(st) {
   history.unshift({ date: Date.now(), a: st.setup.A.name, b: st.setup.B.name, result: st.result, mom: st.mom ? st.mom.name : null, my: batted ? `${batted.runs}(${batted.balls})` : '—' });
   history = history.slice(0, 50);
   DB.save('history', history);
+  // aggregate EVERY player into the local leaderboard
+  for (const i of st.innings) {
+    for (const b of i.batters) {
+      if (!b.balls && !b.runs && !b.out) continue;
+      const p = players[b.name] || { matches: 0, runs: 0, balls: 0, fours: 0, sixes: 0, wickets: 0, mom: 0, hs: 0 };
+      p.matches += 1; p.runs += b.runs; p.balls += b.balls; p.fours += b.fours; p.sixes += b.sixes;
+      if (b.runs > p.hs) p.hs = b.runs;
+      players[b.name] = p;
+    }
+    for (const b of i.bowlers) {
+      if (!b.balls) continue;
+      const p = players[b.name] || { matches: 0, runs: 0, balls: 0, fours: 0, sixes: 0, wickets: 0, mom: 0, hs: 0 };
+      p.wickets += b.wickets;
+      players[b.name] = p;
+    }
+  }
+  if (st.mom && players[st.mom.name]) players[st.mom.name].mom += 1;
+  DB.save('players', players);
+  lastMatch = st;
+  broadcastTV(st);
   room = null;
   if (leveled) sfx.levelup(); else sfx.ok();
 
@@ -583,7 +650,8 @@ function finishMatch(st) {
       ${newBadges.map((b) => `<div class="badge-pop"><div style="font-size:26px">${b.i}</div><div class="b">BADGE UNLOCKED: ${b.t}</div></div>`).join('')}
     </div>
     <div class="menu">
-      <button class="gold" onclick="go('setup')">🔁 PLAY AGAIN</button>
+      <button class="gold" onclick="shareScorecard()">📤 SHARE SCORECARD</button>
+      <button class="primary" onclick="go('setup')">🔁 PLAY AGAIN</button>
       <button onclick="go('stats')">📊 SEE CAREER</button>
       <button onclick="go('home')">🏠 HOME</button>
     </div>${FOOT}`);
@@ -632,14 +700,117 @@ function screenStats() {
   mountMini();
 }
 
+/* ---------- leaderboard ---------- */
+function screenLeaders() {
+  const rows = Object.entries(players).map(([name, p]) => ({ name, ...p }));
+  const bat = [...rows].sort((a, b) => b.runs - a.runs).slice(0, 10);
+  const bowl = [...rows].filter((r) => r.wickets).sort((a, b) => b.wickets - a.wickets).slice(0, 10);
+  const medal = (i) => (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`);
+  const me = profile.name.toLowerCase();
+  const row = (r, i, val) => `<div class="hist" ${r.name.toLowerCase() === me ? 'style="border-color:var(--green)"' : ''}>
+      <div>${medal(i)} <b>${esc(r.name)}</b><br><span class="dim" style="font-size:14px">${r.matches} match${r.matches === 1 ? '' : 'es'}${r.mom ? ' · ' + r.mom + '× MoM' : ''}</span></div>
+      <div class="res">${val}</div></div>`;
+  render(`${head()}<div class="backrow"><button onclick="go('home')">◄ BACK</button></div>
+    <div class="sec-t">🏏 MOST RUNS</div>
+    <div class="history">${bat.length ? bat.map((r, i) => row(r, i, `${r.runs} RUNS`)).join('') : '<p class="dim">Play matches to build the leaderboard — every player who ever plays with you gets ranked.</p>'}</div>
+    <div class="sec-t">🎯 MOST WICKETS</div>
+    <div class="history">${bowl.length ? bowl.map((r, i) => row(r, i, `${r.wickets} WKTS`)).join('') : '<p class="dim">No wickets recorded yet.</p>'}</div>
+    ${FOOT}`);
+  mountMini();
+}
+
+/* ---------- share scorecard as image ---------- */
+async function shareScorecard() {
+  const st = lastMatch;
+  if (!st) { toast('No finished match to share yet'); return; }
+  try { await document.fonts.ready; } catch (e) {}
+  const W = 800, pad = 46;
+  const lines1 = scLines(st, 0), lines2 = st.innings[1] ? scLines(st, 1) : [];
+  const H = 300 + (lines1.length + lines2.length) * 34 + (st.innings[1] ? 70 : 0) + 130;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
+  // scanlines
+  x.fillStyle = 'rgba(255,255,255,0.03)';
+  for (let y = 0; y < H; y += 4) x.fillRect(0, y, W, 1);
+  x.textBaseline = 'top';
+  x.fillStyle = '#f2f2f2'; x.font = "26px 'Press Start 2P'";
+  x.fillText('CRIC', pad, pad);
+  x.fillStyle = '#39ff14'; x.fillText('ADDA', pad + 118, pad);
+  x.fillStyle = '#9aa0a6'; x.font = "20px 'VT323'";
+  x.fillText(new Date().toLocaleDateString(), W - pad - 110, pad + 8);
+  x.fillStyle = '#ffe600'; x.font = "16px 'Press Start 2P'";
+  wrapText(x, '🏆 ' + st.result, pad, pad + 60, W - pad * 2, 30);
+  let y = pad + 120;
+  if (st.mom) { x.fillStyle = '#00e5ff'; x.font = "12px 'Press Start 2P'"; x.fillText(`★ PLAYER OF THE MATCH: ${st.mom.name.toUpperCase()} — ${st.mom.summary}`, pad, y); y += 44; }
+  y = drawInnings(x, st, 0, pad, y, W); if (st.innings[1]) y = drawInnings(x, st, 1, pad, y + 26, W);
+  x.fillStyle = '#9aa0a6'; x.font = "11px 'Press Start 2P'";
+  x.fillText('every ball logged · zero disputes', pad, H - 74);
+  x.fillText('a made. product', W - pad - 200, H - 74);
+  cv.toBlob(async (blob) => {
+    const file = new File([blob], 'cricadda-scorecard.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'CricAdda scorecard' }); return; } catch (e) {}
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'cricadda-scorecard.png'; a.click();
+    toast('Scorecard image downloaded 📥');
+  });
+}
+function scLines(st, i) {
+  const inn = st.innings[i];
+  return [...inn.batters.filter((b) => b.balls || b.runs || b.out), ...inn.bowlers.filter((b) => b.balls)];
+}
+function drawInnings(x, st, i, pad, y, W) {
+  const inn = st.innings[i];
+  x.fillStyle = '#39ff14'; x.font = "13px 'Press Start 2P'";
+  x.fillText(`${st.setup[inn.batKey].name.toUpperCase()} — ${inn.runs}/${inn.wickets}`, pad, y); y += 36;
+  x.font = "22px 'VT323'";
+  for (const b of inn.batters.filter((b) => b.balls || b.runs || b.out)) {
+    x.fillStyle = '#f2f2f2'; x.fillText(b.name + (b.out ? ' †' : ''), pad, y);
+    x.fillStyle = '#ffe600'; x.fillText(`${b.runs} (${b.balls})`, W - pad - 120, y); y += 34;
+  }
+  for (const b of inn.bowlers.filter((b) => b.balls)) {
+    x.fillStyle = '#9aa0a6'; x.fillText('🎳 ' + b.name, pad, y);
+    x.fillStyle = '#00e5ff'; x.fillText(`${b.wickets}/${b.runs}`, W - pad - 120, y); y += 34;
+  }
+  return y;
+}
+function wrapText(x, text, px, py, maxW, lh) {
+  const words = text.split(' ');
+  let line = '', y = py;
+  for (const w of words) {
+    if (x.measureText(line + w).width > maxW && line) { x.fillText(line, px, y); line = w + ' '; y += lh; }
+    else line += w + ' ';
+  }
+  x.fillText(line.trim(), px, y);
+}
+
+/* ---------- PWA: the website IS the app ---------- */
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); installPrompt = e;
+  const b = $('installBtn'); if (b) b.style.display = 'flex';
+});
+async function installApp() {
+  if (!installPrompt) { toast('Open in Chrome and use “Add to Home screen”'); return; }
+  installPrompt.prompt();
+  await installPrompt.userChoice;
+  installPrompt = null;
+  const b = $('installBtn'); if (b) b.style.display = 'none';
+}
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
 /* ---------------- router ---------------- */
-const SCREENS = { boot: screenBoot, ob1: screenOb1, ob2: screenOb2, ob3: screenOb3, ob4: screenOb4, home: screenHome, teams: screenTeams, setup: screenSetup, match: screenMatch, stats: screenStats, pair: screenPair };
+const SCREENS = { boot: screenBoot, ob1: screenOb1, ob2: screenOb2, ob3: screenOb3, ob4: screenOb4, home: screenHome, teams: screenTeams, setup: screenSetup, match: screenMatch, stats: screenStats, pair: screenPair, leaders: screenLeaders };
 function go(name) {
   if (!profile && !['boot', 'ob1', 'ob2', 'ob3', 'ob4'].includes(name)) name = 'boot';
   (SCREENS[name] || screenBoot)();
   window.scrollTo(0, 0);
 }
 // expose for inline handlers
-Object.assign(window, { go, obSendOtp, obVerify, otpKey, obCycle, obRandom, obFinish, obCreate, addTeam, delTeam, fillTeam, startMatch, ball, dispatch, quitMatch });
+Object.assign(window, { go, obSendOtp, obVerify, otpKey, obCycle, obRandom, obFinish, obCreate, addTeam, delTeam, fillTeam, startMatch, ball, dispatch, quitMatch, openTV, shareScorecard, installApp });
 
 go(profile ? 'home' : 'boot');
