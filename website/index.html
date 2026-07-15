@@ -67,6 +67,24 @@
   ]
 }
 </script>
+<link rel="preload" href="/fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/vt323.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is CricAdda?",
+      "acceptedAnswer": { "@type": "Answer", "text": "CricAdda turns a box-cricket turf into a stadium: a big LED screen shows live scores, your phone is the remote, and sensors with AI cameras detect fours, sixes and runs automatically." } },
+    { "@type": "Question", "name": "Does CricAdda need internet at the turf?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Everything at the turf runs on local Wi-Fi through the Turf Hub — a match never stops if the internet drops. The cloud syncs stats and highlights when a connection is available." } },
+    { "@type": "Question", "name": "How does automatic scoring work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Boundary sensors detect fours, an overhead AI camera detects sixes and runs. Detections appear on the scorer's phone as one-tap confirmations, and manual scoring always overrides the sensors." } },
+    { "@type": "Question", "name": "Can I try CricAdda without visiting a turf?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — the demo runs entirely in your browser: pair the turf screen with the phone using a code, score a match and fire the boundary sensor, all on one page." } }
+  ]
+}
+</script>
 <link rel="stylesheet" href="style.css">
 <style>
   html { scroll-behavior: smooth; }
@@ -406,12 +424,12 @@
       <p>Nothing below is a mock-up — every frame is captured from the real working build.</p>
     </div>
     <div class="shots">
-      <figure class="shot"><img src="img/screen-pairing.png" alt="Turf screen showing pairing code"><figcaption>LEVEL 4 — THE SCREEN SHOWS THE PAIRING CODE</figcaption></figure>
-      <figure class="shot"><img src="img/screen-live.png" alt="Live scoreboard"><figcaption>LEVEL 5 — LIVE STADIUM SCOREBOARD</figcaption></figure>
-      <figure class="shot"><img src="img/screen-six.png" alt="Six celebration"><figcaption>LEVEL 5 — SIX! FULL-SCREEN CELEBRATION + SOUND</figcaption></figure>
-      <figure class="shot"><img src="img/screen-result.png" alt="Result with scorecards"><figcaption>LEVEL 7 — RESULT, SCORECARDS &amp; PLAYER OF THE MATCH</figcaption></figure>
-      <figure class="shot tall"><img src="img/phone-autodetect.png" alt="Auto-detect confirmation on phone"><figcaption>LEVEL 6 — SENSOR FIRED, ONE TAP TO CONFIRM</figcaption></figure>
-      <figure class="shot tall"><img src="img/spectator-live.png" alt="Spectator live view"><figcaption>BOSS LEVEL — FAMILY FOLLOWS LIVE, NO APP NEEDED</figcaption></figure>
+      <figure class="shot"><img loading="lazy" decoding="async" src="img/screen-pairing.png" alt="Turf screen showing pairing code"><figcaption>LEVEL 4 — THE SCREEN SHOWS THE PAIRING CODE</figcaption></figure>
+      <figure class="shot"><img loading="lazy" decoding="async" src="img/screen-live.png" alt="Live scoreboard"><figcaption>LEVEL 5 — LIVE STADIUM SCOREBOARD</figcaption></figure>
+      <figure class="shot"><img loading="lazy" decoding="async" src="img/screen-six.png" alt="Six celebration"><figcaption>LEVEL 5 — SIX! FULL-SCREEN CELEBRATION + SOUND</figcaption></figure>
+      <figure class="shot"><img loading="lazy" decoding="async" src="img/screen-result.png" alt="Result with scorecards"><figcaption>LEVEL 7 — RESULT, SCORECARDS &amp; PLAYER OF THE MATCH</figcaption></figure>
+      <figure class="shot tall"><img loading="lazy" decoding="async" src="img/phone-autodetect.png" alt="Auto-detect confirmation on phone"><figcaption>LEVEL 6 — SENSOR FIRED, ONE TAP TO CONFIRM</figcaption></figure>
+      <figure class="shot tall"><img loading="lazy" decoding="async" src="img/spectator-live.png" alt="Spectator live view"><figcaption>BOSS LEVEL — FAMILY FOLLOWS LIVE, NO APP NEEDED</figcaption></figure>
     </div>
   </div>
 </section>
@@ -548,6 +566,16 @@
     }
   }
   setInterval(tick, 1400);
+})();
+</script>
+<script>
+(() => {
+  const els = document.querySelectorAll('.level, .pu, .shot, .steps60 li, .q-step, .cab, .sec-head, .hs');
+  els.forEach((el, i) => { el.classList.add('reveal'); el.style.transitionDelay = (i % 6) * 45 + 'ms'; });
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+  els.forEach((el) => io.observe(el));
 })();
 </script>
 </body>

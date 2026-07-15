@@ -124,3 +124,18 @@ button.gold { box-shadow: 3px 3px 0 rgba(0,0,0,0.55), 0 0 16px rgba(255,230,0,0.
 button.danger { box-shadow: 3px 3px 0 rgba(0,0,0,0.55), 0 0 16px rgba(255,45,149,0.35); }
 .gold { text-shadow: 0 0 12px rgba(255,230,0,0.5); }
 .green { text-shadow: 0 0 12px rgba(57,255,20,0.5); }
+
+/* ---------- motion & micro-interactions ---------- */
+@view-transition { navigation: auto; }         /* smooth cross-page transitions (progressive) */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.22s; }
+
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+button:hover, .btn:hover { border-color: var(--green); }
+.ball-chip { animation: chipin 0.18s ease; }
+@keyframes chipin { from { transform: scale(0.4); } to { transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

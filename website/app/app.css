@@ -164,3 +164,30 @@ table.stats td:last-child { text-align: right; font-family: 'Press Start 2P', mo
 .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--panel2);
   border: 3px solid var(--line); padding: 10px 18px; opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 80; }
 .toast.show { opacity: 1; }
+
+/* ---------- micro-interactions ---------- */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.18s; }
+
+@keyframes shake { 0%,100% { transform: none; } 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+.shake { animation: shake 0.35s ease; }
+
+.ball-chip { animation: chipin 0.18s ease; }
+@keyframes chipin { from { transform: scale(0.4); } to { transform: scale(1); } }
+
+.mini-score .r { animation: scoretick 0.22s ease; }
+@keyframes scoretick { from { transform: scale(1.14); } to { transform: scale(1); } }
+
+.bdg.won { position: relative; overflow: hidden; }
+.bdg.won::after {
+  content: ''; position: absolute; top: -60%; left: -80%; width: 40%; height: 220%;
+  background: linear-gradient(105deg, transparent, rgba(255,230,0,0.35), transparent);
+  transform: rotate(18deg); animation: shine 3.2s ease infinite;
+}
+@keyframes shine { 0% { left: -80%; } 55%, 100% { left: 140%; } }
+
+button:hover { border-color: var(--green); }
+.menu button { transition: transform 0.06s ease, border-color 0.15s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
