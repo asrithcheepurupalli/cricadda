@@ -13,10 +13,19 @@ const DB = {
   save(k, v) { localStorage.setItem('cricadda_' + k, JSON.stringify(v)); },
 };
 let profile = DB.load('profile', null);
+let accounts = DB.load('accounts', {}); // phone -> profile (multi-account: sign out & back in restores everything)
 let teams = DB.load('teams', []);
 let history = DB.load('history', []);
 let players = DB.load('players', {}); // everyone who ever played: name -> aggregates
+let settings = DB.load('settings', { sound: true });
+let turfs = DB.load('turfs', ['CricAdda Arena — Madhapur', 'GreenPitch — Gachibowli', 'SkyTurf Rooftop — Kukatpally']);
+let bookings = DB.load('bookings', []); // {id, turf, date, slot, at}
 let lastMatch = null;                 // final state of the most recent match (for sharing)
+
+function saveProfile() {
+  DB.save('profile', profile);
+  if (profile && profile.phone) { accounts[profile.phone] = profile; DB.save('accounts', accounts); }
+}
 
 /* ---------------- TV mode (BroadcastChannel) ---------------- */
 let tvChannel = null;
@@ -66,6 +75,7 @@ function mulberry(seed) { return function () { let t = (seed += 0x6d2b79f5); t =
 /* ---------------- sound ---------------- */
 let AC = null;
 function tone(f, d, dl = 0, t = 'square', v = 0.09) {
+  if (!settings.sound) return;
   try {
     if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
     const o = AC.createOscillator(), g = AC.createGain();
@@ -340,7 +350,16 @@ function otpKey(i, e) {
 function obVerify() {
   const code = [0, 1, 2, 3].map((i) => $('otp' + i).value).join('');
   if (code !== obCode) { $('obErr').textContent = 'Wrong code — check the SMS at the top!'; sfx.wicket(); return; }
-  sfx.ok(); go('ob3');
+  sfx.ok();
+  // returning player? phone number is the identity — restore the whole career
+  if (accounts[obPhone]) {
+    profile = accounts[obPhone];
+    DB.save('profile', profile);
+    toast(`Welcome back, ${profile.name}! 🏏`);
+    go('home');
+    return;
+  }
+  go('ob3');
 }
 function screenOb3() {
   render(`${dots(3)}<div class="center">
@@ -384,7 +403,7 @@ function screenOb4() {
 function obCreate() {
   profile = { phone: obPhone, name: obName, avatarSeed: obSeed, xp: 0, badges: [],
     stats: { matches: 0, runs: 0, ballsFaced: 0, fours: 0, sixes: 0, outs: 0, wickets: 0, ballsBowled: 0, runsConceded: 0, hs: 0, bestBowl: '', best50: false, best100: false, mom: 0 } };
-  DB.save('profile', profile);
+  saveProfile();
   sfx.levelup();
   go('home');
 }
@@ -413,7 +432,9 @@ function screenHome() {
       <button onclick="go('teams')"><span class="em">🛡️</span> MY TEAMS</button>
       <button onclick="go('stats')"><span class="em">📊</span> CAREER &amp; BADGES</button>
       <button onclick="go('leaders')"><span class="em">🏆</span> LEADERBOARD</button>
+      <button onclick="go('book')"><span class="em">📅</span> BOOK A TURF</button>
       <button onclick="go('pair')"><span class="em">🖥️</span> PAIR WITH TURF SCREEN</button>
+      <button onclick="go('settings')"><span class="em">⚙️</span> SETTINGS</button>
       <button id="installBtn" class="gold" style="display:none" onclick="installApp()"><span class="em">📲</span> INSTALL ON HOME SCREEN</button>
     </div>${FOOT}`);
   if (installPrompt) { const b = $('installBtn'); if (b) b.style.display = 'flex'; }
@@ -572,10 +593,6 @@ function renderMatch() {
 function ball(r) { dispatch({ type: 'ball', runs: r }); }
 function quitMatch() { if (confirm('Abandon this match? Nothing will be saved.')) { room = null; go('home'); } }
 function handleFx(st) {
-  // find last ball fx
-  let fx = null;
-  const s2 = matchState();
-  // recompute lastFx cheaply from room state: track via seq
   const evs = room.events.filter((e) => e.type === 'ball');
   if (!evs.length) return;
   const lastSeq = evs[evs.length - 1].seq;
@@ -615,7 +632,7 @@ function finishMatch(st) {
   profile.xp += xpGain;
   const newBadges = checkBadges();
   const leveled = lvlOf(profile.xp) > beforeLvl;
-  DB.save('profile', profile);
+  saveProfile();
   history.unshift({ date: Date.now(), a: st.setup.A.name, b: st.setup.B.name, result: st.result, mom: st.mom ? st.mom.name : null, my: batted ? `${batted.runs}(${batted.balls})` : '—' });
   history = history.slice(0, 50);
   DB.save('history', history);
@@ -786,6 +803,112 @@ function wrapText(x, text, px, py, maxW, lh) {
   x.fillText(line.trim(), px, y);
 }
 
+/* ---------- bookings ---------- */
+let bkTurf = 0, bkDate = null;
+function dateKey(d) { return d.toISOString().slice(0, 10); }
+function screenBook() {
+  const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d; });
+  if (!bkDate) bkDate = dateKey(days[0]);
+  const slots = [...Array(18)].map((_, i) => `${String(6 + i).padStart(2, '0')}:00`);
+  const taken = new Set(bookings.filter((b) => b.turf === turfs[bkTurf] && b.date === bkDate).map((b) => b.slot));
+  const mine = bookings.filter((b) => b.phone === profile.phone).sort((a, b) => (a.date + a.slot).localeCompare(b.date + b.slot));
+  const dayLbl = (d) => ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][d.getDay()] + ' ' + d.getDate();
+  render(`${head()}<div class="backrow"><button onclick="go('home')">◄ BACK</button></div>
+    <div class="card">
+      <div class="sec-t" style="margin-top:0">BOOK A TURF SLOT</div>
+      <label>Turf</label>
+      <select id="bkTurf" onchange="bkSetTurf()">${turfs.map((t, i) => `<option value="${i}" ${i === bkTurf ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input id="newTurf" placeholder="add your own turf name…">
+        <button style="font-size:9px;padding:12px" onclick="addTurf()">＋ ADD</button>
+      </div>
+      <label>Day</label>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px">
+        ${days.map((d) => `<button style="font-size:8px;padding:12px 10px;white-space:nowrap;${dateKey(d) === bkDate ? 'background:var(--green);border-color:var(--green);color:#041a00' : ''}"
+          onclick="bkSetDate('${dateKey(d)}')">${dayLbl(d)}</button>`).join('')}
+      </div>
+      <label>Slot (1 hour)</label>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        ${slots.map((sl) => taken.has(sl)
+          ? `<button disabled style="opacity:0.35;font-size:9px;padding:12px 4px">${sl}<br>BOOKED</button>`
+          : `<button style="font-size:10px;padding:14px 4px" onclick="bookSlot('${sl}')">${sl}</button>`).join('')}
+      </div>
+    </div>
+    <div class="sec-t">MY BOOKINGS</div>
+    <div class="history">${mine.length ? mine.map((b) => `
+      <div class="hist"><div><b>${esc(b.turf)}</b><br><span class="dim" style="font-size:14px">${b.date} · ${b.slot} · code ${b.id}</span></div>
+        <button class="danger" style="font-size:8px;padding:8px" onclick="cancelBooking('${b.id}')">✕</button></div>`).join('')
+      : '<p class="dim">No bookings yet. Grab a slot — the screen greets your squad by name when you arrive.</p>'}</div>
+    <p class="dim" style="margin-top:14px;font-size:16px">Demo build: bookings live on this device.
+    The launch backend adds real availability + UPI payment at this exact screen.</p>
+    ${FOOT}`);
+  mountMini();
+}
+function bkSetTurf() { bkTurf = +$('bkTurf').value; screenBook(); }
+function bkSetDate(d) { bkDate = d; sfx.tap(); screenBook(); }
+function addTurf() {
+  const v = $('newTurf').value.trim();
+  if (!v) return;
+  turfs.push(v); DB.save('turfs', turfs);
+  bkTurf = turfs.length - 1; sfx.ok(); screenBook();
+}
+function bookSlot(slot) {
+  const id = 'BK' + String((Math.random() * 9000 + 1000) | 0);
+  bookings.push({ id, phone: profile.phone, turf: turfs[bkTurf], date: bkDate, slot, at: Date.now() });
+  DB.save('bookings', bookings);
+  sfx.levelup();
+  flash('fm', '📅 BOOKED!', `${turfs[bkTurf]} · ${bkDate} · ${slot} · code ${id}`);
+  screenBook();
+}
+function cancelBooking(id) {
+  if (!confirm('Cancel this booking?')) return;
+  bookings = bookings.filter((b) => b.id !== id);
+  DB.save('bookings', bookings);
+  screenBook();
+}
+
+/* ---------- settings ---------- */
+function screenSettings() {
+  render(`${head()}<div class="backrow"><button onclick="go('home')">◄ BACK</button></div>
+    <div class="card" style="text-align:center">
+      <div class="sec-t" style="margin-top:0">YOUR PLAYER</div>
+      <div class="av-stage">
+        <button class="arrow" onclick="setAv(-1)">◄</button>
+        <div class="av-frame"><canvas id="setAvC"></canvas></div>
+        <button class="arrow" onclick="setAv(1)">►</button>
+      </div>
+      <div class="av-name">« ${esc(avatarConfig(profile.avatarSeed).title)} »</div>
+      <label style="text-align:left">Display name</label>
+      <input id="setName" maxlength="20" value="${esc(profile.name)}" style="text-align:center;font-size:22px">
+      <button class="primary wide" style="margin-top:14px" onclick="saveSettings()">SAVE CHANGES</button>
+      <p class="dim" style="font-size:15px;margin-top:10px">Career stats follow your name in match scoring — keep it consistent.</p>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="sec-t" style="margin-top:0">GAME</div>
+      <button class="wide" onclick="toggleSound()">${settings.sound ? '🔊 SOUND: ON' : '🔇 SOUND: OFF'}</button>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="sec-t" style="margin-top:0">ACCOUNT</div>
+      <p class="dim" style="font-size:16px;margin-bottom:12px">📞 ${esc(profile.phone)} — your career is saved to this number. Sign out anytime; signing back in restores everything.</p>
+      <button class="danger wide" onclick="signOut()">SIGN OUT</button>
+    </div>${FOOT}`);
+  drawAvatar($('setAvC'), profile.avatarSeed, 7);
+  mountMini();
+}
+function setAv(d) { profile.avatarSeed = (profile.avatarSeed + d + 1e9) % 1e9; sfx.tap(); drawAvatar($('setAvC'), profile.avatarSeed, 7); }
+function saveSettings() {
+  const n = $('setName').value.trim();
+  if (n) profile.name = n;
+  saveProfile(); sfx.ok(); toast('Saved ✓'); go('home');
+}
+function toggleSound() { settings.sound = !settings.sound; DB.save('settings', settings); sfx.ok(); screenSettings(); }
+function signOut() {
+  if (!confirm('Sign out? Your career stays saved to your phone number.')) return;
+  saveProfile();
+  profile = null; DB.save('profile', null);
+  go('boot');
+}
+
 /* ---------- PWA: the website IS the app ---------- */
 let installPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -804,13 +927,13 @@ if ('serviceWorker' in navigator) {
 }
 
 /* ---------------- router ---------------- */
-const SCREENS = { boot: screenBoot, ob1: screenOb1, ob2: screenOb2, ob3: screenOb3, ob4: screenOb4, home: screenHome, teams: screenTeams, setup: screenSetup, match: screenMatch, stats: screenStats, pair: screenPair, leaders: screenLeaders };
+const SCREENS = { boot: screenBoot, ob1: screenOb1, ob2: screenOb2, ob3: screenOb3, ob4: screenOb4, home: screenHome, teams: screenTeams, setup: screenSetup, match: screenMatch, stats: screenStats, pair: screenPair, leaders: screenLeaders, book: screenBook, settings: screenSettings };
 function go(name) {
   if (!profile && !['boot', 'ob1', 'ob2', 'ob3', 'ob4'].includes(name)) name = 'boot';
   (SCREENS[name] || screenBoot)();
   window.scrollTo(0, 0);
 }
 // expose for inline handlers
-Object.assign(window, { go, obSendOtp, obVerify, otpKey, obCycle, obRandom, obFinish, obCreate, addTeam, delTeam, fillTeam, startMatch, ball, dispatch, quitMatch, openTV, shareScorecard, installApp });
+Object.assign(window, { go, obSendOtp, obVerify, otpKey, obCycle, obRandom, obFinish, obCreate, addTeam, delTeam, fillTeam, startMatch, ball, dispatch, quitMatch, openTV, shareScorecard, installApp, bkSetTurf, bkSetDate, addTurf, bookSlot, cancelBooking, setAv, saveSettings, toggleSound, signOut });
 
 go(profile ? 'home' : 'boot');

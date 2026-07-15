@@ -59,6 +59,11 @@ as the app. One codebase, website first:
 - **Career & badges**: batting/bowling stats, match history, unlockable badges
   (BIG HITTER, 50 CLUB, WICKET WOLF…), Player-of-the-Match count
 - **Squads**: build teams once, reuse forever
+- **Turf bookings**: pick a turf (add your own turf names), day and hour slot — booking
+  codes, cancellations, "my bookings" list
+- **Accounts & settings**: sign out and back in with your phone number to restore your
+  whole career; edit name/avatar; sound toggle
+- **Leaderboard, TV mode, shareable scorecards, PWA install** — every feature on the web
 - Everything persists in the browser (localStorage) — no backend needed for the model;
   the cloud layer from [docs/03](docs/03-system-architecture.md) slots in behind it later
 
