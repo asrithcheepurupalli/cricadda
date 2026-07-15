@@ -96,6 +96,11 @@ No package.json, no build, no test framework — testing is done by driving real
 - Default squad names: Asrith, Tarun, Chandesh, Vamsi (Team A) / Partha, Rohit, Suresh,
   Deepak (Team B) — the founding crew; keep names unique across teams (stats key by name).
 - Docs end with `*CricAdda — a **made.** product*`.
+- **Motion**: app screen changes go through `document.startViewTransition` (in `go()`),
+  cross-page uses `@view-transition` CSS; landing sections scroll-reveal via
+  IntersectionObserver (`.reveal`/`.in`); haptics via `navigator.vibrate` (taps 8ms,
+  four/six/wicket patterns); every animation must be disabled by
+  `prefers-reduced-motion: reduce` (global kill switch exists in both stylesheets).
 
 ## Known gaps (next milestones)
 

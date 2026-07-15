@@ -1,5 +1,5 @@
 /* CricAdda service worker — the website IS the app: offline-capable, installable. */
-const CACHE = 'cricadda-v2';
+const CACHE = 'cricadda-v3';
 const SHELL = [
   '/app/', '/app/index.html', '/app/app.css', '/app/app.js', '/app/tv.html',
   '/fonts/press-start-2p.woff2', '/fonts/vt323.woff2',

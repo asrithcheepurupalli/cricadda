@@ -349,7 +349,13 @@ function otpKey(i, e) {
 }
 function obVerify() {
   const code = [0, 1, 2, 3].map((i) => $('otp' + i).value).join('');
-  if (code !== obCode) { $('obErr').textContent = 'Wrong code — check the SMS at the top!'; sfx.wicket(); return; }
+  if (code !== obCode) {
+    $('obErr').textContent = 'Wrong code — check the SMS at the top!';
+    const row = document.querySelector('.otp-row');
+    if (row) { row.classList.remove('shake'); void row.offsetWidth; row.classList.add('shake'); }
+    try { if (navigator.vibrate) navigator.vibrate([60, 40, 60]); } catch (err) {}
+    sfx.wicket(); return;
+  }
   sfx.ok();
   // returning player? phone number is the identity — restore the whole career
   if (accounts[obPhone]) {
@@ -440,6 +446,9 @@ function screenHome() {
   if (installPrompt) { const b = $('installBtn'); if (b) b.style.display = 'flex'; }
   drawAvatar($('homeAv'), profile.avatarSeed, 7);
   mountMini();
+  const fill = document.querySelector('.xpbar .fill');
+  if (fill) { const w = fill.style.width; fill.style.width = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = w; })); }
 }
 
 /* ---------- pair info ---------- */
@@ -600,9 +609,10 @@ function handleFx(st) {
   lastFxSeq = lastSeq;
   // derive what happened on the last ball
   const e = evs[evs.length - 1];
-  if (e.wicket) { flash('fw', 'OUT!', ''); sfx.wicket(); }
-  else if (e.runs === 4 && !e.extra) { flash('f4', 'FOUR!', ''); sfx.four(); }
-  else if (e.runs === 6 && !e.extra) { flash('f6', 'SIX!', ''); sfx.six(); }
+  const buzz = (pat) => { try { if (navigator.vibrate) navigator.vibrate(pat); } catch (err) {} };
+  if (e.wicket) { flash('fw', 'OUT!', ''); sfx.wicket(); buzz([80, 40, 80]); }
+  else if (e.runs === 4 && !e.extra) { flash('f4', 'FOUR!', ''); sfx.four(); buzz([40]); }
+  else if (e.runs === 6 && !e.extra) { flash('f6', 'SIX!', ''); sfx.six(); buzz([30, 40, 90]); }
 }
 
 /* ---------- result & career update ---------- */
@@ -930,9 +940,20 @@ if ('serviceWorker' in navigator) {
 const SCREENS = { boot: screenBoot, ob1: screenOb1, ob2: screenOb2, ob3: screenOb3, ob4: screenOb4, home: screenHome, teams: screenTeams, setup: screenSetup, match: screenMatch, stats: screenStats, pair: screenPair, leaders: screenLeaders, book: screenBook, settings: screenSettings };
 function go(name) {
   if (!profile && !['boot', 'ob1', 'ob2', 'ob3', 'ob4'].includes(name)) name = 'boot';
-  (SCREENS[name] || screenBoot)();
-  window.scrollTo(0, 0);
+  const paint = () => { (SCREENS[name] || screenBoot)(); window.scrollTo(0, 0); };
+  // smooth screen transitions where supported (skipped for reduced-motion users)
+  if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.startViewTransition(paint);
+  } else paint();
 }
+// arcade feel: tap blip + haptic on every button press
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  sfx.tap();
+  try { if (navigator.vibrate) navigator.vibrate(8); } catch (err) {}
+}, { passive: true });
+
 // expose for inline handlers
 Object.assign(window, { go, obSendOtp, obVerify, otpKey, obCycle, obRandom, obFinish, obCreate, addTeam, delTeam, fillTeam, startMatch, ball, dispatch, quitMatch, openTV, shareScorecard, installApp, bkSetTurf, bkSetDate, addTurf, bookSlot, cancelBooking, setAv, saveSettings, toggleSound, signOut });
 
